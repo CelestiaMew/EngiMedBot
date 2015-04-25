@@ -21,7 +21,7 @@ public class Main {
 	static String channel = "#recursiveblaze";
 	//static String channel = "#darkmagiciangirl_";
 	static BufferedWriter writer=null;
-	static BufferedReader reader=null;
+	static BufferedReader reader=null; 
 	public static void main(String[] args)
 	{
 		JFrame f = new JFrame();
