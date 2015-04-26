@@ -1,6 +1,10 @@
 package blazebot;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -119,7 +123,7 @@ public class Parser implements Runnable
 			String[] curcmd = commands.get(i);
 			if(params[0].equalsIgnoreCase(curcmd[0]))
 			{
-				if(!curcmd[1].equals("mod")||(curcmd[1].equals("mod")&&isMod(user)))//
+				if(!curcmd[1].equals("mod")||(curcmd[1].equals("mod")&&isMod(user)))
 					Main.chatMsg(curcmd[2]);
 				return;
 			}
@@ -135,6 +139,35 @@ public class Parser implements Runnable
 					return;
 				}
 			}
+		if(params[0].equalsIgnoreCase("!uptime"))
+		{
+			String channelt=Main.channel.substring(1);
+			if(params.length>1)
+			{
+				channelt = params[1];
+			}
+			URL MyURL = null;;
+			try {
+				MyURL = new URL("https://nightdev.com/hosted/uptime.php?channel="+channelt);
+				BufferedReader in = new BufferedReader(new InputStreamReader(MyURL.openStream()));
+				String inputLine = in.readLine();
+				in.close();
+				if(inputLine.equals("The channel is not live."))
+				{
+					Main.chatMsg("Sorry, "+channelt+" is not live");
+				}
+				else
+				{
+					Main.chatMsg(channelt+" has been live for "+inputLine);
+				}
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e) {
+				Main.chatMsg("Error");
+			}
+			
+		}
 		if(params[0].equalsIgnoreCase("!changevote")||params[0].equalsIgnoreCase("!vote")||params[0].equalsIgnoreCase("!pullout"))
 				if(activePoll!=null&&user.isReal)
 				{
