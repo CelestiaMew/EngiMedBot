@@ -2,6 +2,7 @@ package blazebot;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.EmptyStackException;
 import java.util.Stack;
 
 import blazebot.ShipPoll.Ship;
@@ -9,17 +10,19 @@ import blazebot.ShipPoll.Ship;
 public class Poll 
 {
 	
-	public Poll(String command, String message, String[] options)
+	public Poll(String command, String message, String[] inoptions)
 	{
 		int i=0;
 		this.command=command;
-		this.options = new Option[options.length];
-		for(String option : options)
+		
+		options = new Option[inoptions.length];
+		for(String option : inoptions)
 		{
 			Option temp = new Option(option);
 			this.options[i] = temp;
 			i++;
 		}
+		System.out.println(inoptions[0]);
 		this.message = message;//yeh
 		polls.add(this);//stored
 		
@@ -34,7 +37,7 @@ public class Poll
 	public void startPoll()
 	{
 		Parser.activePoll=this;// for what will be outputted like 'Vote for your favourite ship' etc
-		Main.chatMsg(message);
+		Main.chatMsg(message + " Vote using !vote <option>");
 	}
 	String message;//this will be stored from when constructor ran
 	//so all we are doing, is new Poll("!poll","message",new String(){"stuff"}); then it will auto store itself in the poll stack right? so we can then use a static method to search the stack for
@@ -79,7 +82,7 @@ public class Poll
 		}
 		else
 		{
-			Main.chatMsg("Tie detected between "+bestest.name+" and "+tiedString.substring(0, tiedString.length()-4));
+			Main.chatMsg("Tie between "+bestest.name+" and "+tiedString.substring(0, tiedString.length()-4)+" with "+bestest.votecount+" votes");// i didnt read i didnt think you were doing that my bad
 		}
 		options=null;
 		votes=new Stack<Vote>();//there is 2 ways we could do it, have a static method that will look through the polls, or have the Parser class do it cause startPoll and endPoll are NOT static
@@ -91,7 +94,7 @@ public class Poll
 	{
 		
 		boolean valid=false;
-		public Vote(User user,String option)// it only just occured to me
+		public Vote(User user,String option)
 		{
 			System.out.println(option);
 			for(int i=0;i<votes.size();i++)
@@ -101,21 +104,15 @@ public class Poll
 					votes.remove(i);
 				}
 			}
-			boolean good = false;
-			for(Option curoption : options){// instances dont work like numbers all you store is a pointer to that instance, so if i do x = new stack or something a=x a litterally equals x so 
-				//this is efficient you can do implements Cloneable if you need it, to do instance.clone() to create an exact copy but usually its not needed
-				if(curoption.name.equalsIgnoreCase(option)){//work betteer? this searches it
+			for(Option curoption : options){
+				if(curoption.name.equalsIgnoreCase(option)){
 					System.out.println(curoption.name);
 					this.user=user;
-					this.option=curoption; //up here no need for search, sry :x
+					this.option=curoption;
 					valid=true;
-					votes.push(this);// do you understand this?
+					votes.push(this);
 					break;
 				}
-			}
-			if(!good)
-			{
-				Main.chatMsg(user.name+", Invalid Option");
 			}
 		}
 		User user;
@@ -129,6 +126,42 @@ public class Poll
 		{
 			this.name = name;
 		}
+	}
+	public static void savePolls(String filename){
+		Stack<String[]> stack = new Stack<String[]>();
+		for(Poll poll : polls){
+			stack.push(poll.arrSerialize());
+		}
+		try {
+			StackUtils.saveSA(filename, stack);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static void loadPolls(String filename){
+		Stack<String[]> stack=null;
+		try {
+			stack = StackUtils.loadSA(filename);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		String[] cur = null;
+		try{
+			while((cur=stack.pop())!=null){
+				new Poll(cur[0],cur[1],Arrays.copyOfRange(cur, 2, cur.length));
+			}
+		}catch(EmptyStackException e){}
+	}
+	public String[] arrSerialize(){
+		String[] arr = new String[2+options.length];
+		arr[0]=command;
+		arr[1]=message;
+		for(int i=0;i<options.length;i++){
+			arr[2+i]=options[i].name;
+		}
+		return arr;
 	}
 	Option[] options = null;//so do you see where we are going so far?
 	Stack<Vote> votes = new Stack<Vote>();

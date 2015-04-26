@@ -17,11 +17,11 @@ public class Main {
 	static String name = "EngiMedBot";
 	//static String pass = "oauth:4klv2yyxwvyuoq8lltzd4zrbnr94pl";
 	static String pass = "oauth:j6mop9v1grb3rizwgr2j1vo4uyyzhx";
-	//static String channel = "#maxfojtikbot";
+	//static String channel = "#maxfojtik";
 	static String channel = "#recursiveblaze";
 	//static String channel = "#darkmagiciangirl_";
 	static BufferedWriter writer=null;
-	static BufferedReader reader=null; 
+	static BufferedReader reader=null;
 	public static void main(String[] args)
 	{
 		JFrame f = new JFrame();
@@ -97,15 +97,18 @@ public class Main {
 	 * @param inmsg : raw chat message
 	 * @throws IOException
 	 */
-	public static String combine(String[] args){
+	public static String combine(String[] args,String regex){
 		String str="";
 		for(int i=0;i<args.length;i++){
 			str+=args[i];
 			if(i!=args.length-1){
-				str+=" ";
+				str+=regex;
 			}
 		}
 		return str;
+	}
+	public static String combine(String[] args){
+		return combine(args," ");
 	}
 	public static void lower(){
 		msgcounter--;
