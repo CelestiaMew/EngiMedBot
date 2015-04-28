@@ -71,34 +71,6 @@ public class Parser implements Runnable
 			Main.chatMsg("Unable to find command "+params[1]);
 			return;
 		}
-		if(params[0].equalsIgnoreCase("!help"))
-		{
-			System.out.println(commands.get(0)[0]+":"+commands.get(0)[1]+":"+commands.get(0)[2]);
-			if(isMod(user))
-			{
-				String comString = "!addcmd, !removecmd, !addpoll, !removepoll, !permit, !ping, !uptime, !vote, !endpoll, ";
-				for(int i=0;i<commands.size();i++)
-				{
-					comString = comString+commands.get(i)[0]+", ";
-				}
-				comString = comString.substring(0, comString.length()-2);
-				Main.chatMsg(comString);
-			}
-			else
-			{
-				String comString = "!uptime, !vote, ";
-				for(int i=0;i<commands.size();i++)
-				{
-					if(commands.get(i)[1].equals("user"))
-					{
-						comString = comString+commands.get(i)[0]+", ";
-					}
-				}
-				comString = comString.substring(0, comString.length()-2);
-				Main.chatMsg(comString);
-			}
-		}
-		
 		if(params[0].equalsIgnoreCase("!addpoll")&&isMod(user)){
 			String msgp2=Main.combine(Arrays.copyOfRange(params,2,params.length));
 			System.out.println(msgp2);
