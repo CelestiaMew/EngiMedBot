@@ -5,10 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.JEditorPane;
 
 public class Parser implements Runnable
 {
@@ -28,6 +31,14 @@ public class Parser implements Runnable
 		User user = User.getUser(sender);
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		System.out.println(sender+": "+message);
+		if(inmsg.toLowerCase().contains("blaze") && inmsg.toLowerCase().contains("favorite ship"))
+		{
+			Main.chatMsg("Blaze would say Zoltan C");
+		}
+		if(inmsg.toLowerCase().contains("do you like waffles"))
+		{
+			Main.chatMsg("/me always like waffles, its like a pancake with CHARACTER");
+		}
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 			return;
 		String[] params = message.split(" ");
@@ -81,11 +92,19 @@ public class Parser implements Runnable
 				}
 			}
 		}
+//		if(params[0].equalsIgnoreCase("!commands")){
+//			String str="!addcmd,!removecmd,!addpoll,!removepoll,!permit,!ping,!uptime,!vote,!endpoll",str2="";
+//			
+//			for(int i=0;i<commands.size();i++){
+//				String[] cmds=commands.get(i);
+//				if(cmds[0])
+//			}
+//			for(int i=0;i<Poll.polls.size();i++){
+//				
+//			}
+//		}
+		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
 		
-		if(inmsg.toLowerCase().contains("blaze") && inmsg.toLowerCase().contains("favorite ship"))
-		{
-			Main.chatMsg("Blaze would say Zoltan C");
-		}
 		/////////////Main Commands //////////////////
 		
 		
@@ -185,20 +204,20 @@ public class Parser implements Runnable
 								}
 						}
 					}
-					if(params[0].equalsIgnoreCase("!changevote"))
-					{
-						if(params.length > 1)
-						{
-							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
-							//use the Poll.vote(thing, user, optionname) for checking these
-							Main.chatMsg("Changed Vote");
-						}
-					}
-					if(params[0].equalsIgnoreCase("!pullout"))
-					{
-						
-						//ShipPoll.removeVote(sender);
-					}
+//					if(params[0].equalsIgnoreCase("!changevote"))
+//					{
+//						if(params.length > 1)
+//						{
+//							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
+//							//use the Poll.vote(thing, user, optionname) for checking these
+//							Main.chatMsg("Changed Vote");
+//						}
+//					}
+//					if(params[0].equalsIgnoreCase("!pullout"))
+//					{
+//						
+//						//ShipPoll.removeVote(sender);
+//					}
 				}
 				else
 				{
@@ -264,7 +283,8 @@ public class Parser implements Runnable
 		}
 	}
 	User permitted=null;
-	public void checkShortened(String inmsg, User user) throws IOException
+	String[] protocols = new String[]{"http://","https://"};
+	public void checkDisallowed(String inmsg, User user) throws IOException
 	{
 		boolean shortened = false;
 //		for(int i = 0; i<BadURLS.size(); i++)
@@ -279,10 +299,7 @@ public class Parser implements Runnable
 		boolean permit=false;
 		
 		permit=user.equals(permitted);
-		if(permit)
-		{
-			permitted=null;
-		}
+		int largeC =0;
 		if(!(isMod(user)||permit))
 			for(int i=0;i<words.length;i++){
 				char[] chars = words[i].toCharArray();
@@ -293,7 +310,23 @@ public class Parser implements Runnable
 							if(Character.isAlphabetic(chars[ii-2])&&Character.isAlphabetic(chars[ii-1])&&Character.isAlphabetic(chars[ii+2])&&Character.isAlphabetic(chars[ii+1]))
 								count++;
 					if(count>0&&count<3){
-						shortened=true;
+						if(count==1){
+							String word=words[i];
+							if(word.contains("."))
+								try{
+									
+									new JEditorPane((word.contains("://") ? "" : "http://") +word);
+									
+									shortened=true;
+								}catch(MalformedURLException e){
+									
+								}catch(UnknownHostException e){
+									
+								}
+						}else
+							shortened=true;
+						if(count>1&&words[i].indexOf('/',words[i].indexOf('.'))>=0)
+							shortened=true;
 						break;
 					}
 				}catch(IndexOutOfBoundsException e){
@@ -302,6 +335,11 @@ public class Parser implements Runnable
 			}
 		if(shortened)
 		{
+			if(permit)
+			{
+				permitted=null;
+				return;
+			}
 			Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
 	    	try {
 				Thread.sleep(100);
@@ -309,7 +347,7 @@ public class Parser implements Runnable
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-	    	Main.chatMsg(".timeout "+user.name+" 1");
+	    	Main.chatMsg(".timeout "+user.name.trim()+" 1");
 		}
 	}
 	public static void save()throws IOException{
@@ -329,6 +367,7 @@ public class Parser implements Runnable
 		{
 			return true;//sure
 		}
+		//return false;
 		return user.isMod;
 	}
 	
