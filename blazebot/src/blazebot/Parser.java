@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.JEditorPane;
 
+import blazebot.Poll.Option;
+
 public class Parser implements Runnable
 {
 	static Stack<String[]> commands = new Stack<String[]>();
@@ -92,17 +94,63 @@ public class Parser implements Runnable
 				}
 			}
 		}
-//		if(params[0].equalsIgnoreCase("!commands")){
-//			String str="!addcmd,!removecmd,!addpoll,!removepoll,!permit,!ping,!uptime,!vote,!endpoll",str2="";
-//			
-//			for(int i=0;i<commands.size();i++){
-//				String[] cmds=commands.get(i);
-//				if(cmds[0])
-//			}
-//			for(int i=0;i<Poll.polls.size();i++){
-//				
-//			}
-//		}
+		if(params[0].equalsIgnoreCase("!help")&&isMod(user)){
+			if(params.length==2){
+				switch(params[1].toLowerCase()){
+				case "!uptime":Main.chatMsg("user access; Shows time stream has been active, use: !uptime [nameofstream]");return;
+				case "!addcmd":Main.chatMsg("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>");return;
+				case "!removecmd":Main.chatMsg("mod access; Shows time stream has been active, use: !removecmd !<command>");return;
+				case "!addpoll":Main.chatMsg("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...");return;
+				case "!removepoll":Main.chatMsg("mod access; Removes a poll, use: !removepoll !<pollcommand>");return;
+				case "!permit":Main.chatMsg("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)");return;
+				case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
+				case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
+				case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
+				case "!help":Main.chatMsg("mod access; Shows help messages or with no parameter shows all commands, seriously..., use: !help, !help !<command>");return;
+				}
+				for(int i=0;i<commands.size();i++){
+					String[] cmds=commands.get(i);
+					if(cmds[0].equalsIgnoreCase(params[1])){
+						Main.chatMsg(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2]);
+						return;
+					}
+					
+				}
+				
+				for(int i=0;i<Poll.polls.size();i++){
+					Poll cmds=Poll.polls.get(i);
+					if(cmds.command.equalsIgnoreCase(params[1])){
+						String str="";
+						for(Option o : cmds.options){
+							str+=o.name+" ";
+						}
+						
+						Main.chatMsg("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+str);
+						return;
+					}
+					
+				}
+				Main.chatMsg("Command not found");
+			}else if(params.length==1){
+				String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !endpoll",str2="User Commands: !vote";
+				
+				for(int i=0;i<commands.size();i++){
+					String[] cmds=commands.get(i);
+					if(cmds[1].equals("mod")){
+						str+=" "+cmds[0];
+					}else{
+						str2+=" "+cmds[0];
+					}
+				}
+				str+=" Polls ";
+				for(int i=0;i<Poll.polls.size();i++){
+					str+=" "+Poll.polls.get(i).command;
+				}
+				Main.chatMsg(str);
+				Main.chatMsg(str2);
+			}
+			
+		}
 		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
 		
 		/////////////Main Commands //////////////////
@@ -114,7 +162,7 @@ public class Parser implements Runnable
 			if(permitted.isReal)
 			{
 				permitted.linkPermitted = true;
-				Main.chatMsg(permitted.name+" Permmited, post your link now");
+				Main.chatMsg(permitted.name+" Permitted, post your link now");
 			}
 			else
 			{
@@ -284,7 +332,7 @@ public class Parser implements Runnable
 	}
 	User permitted=null;
 	String[] protocols = new String[]{"http://","https://"};
-	public void checkDisallowed(String inmsg, User user) throws IOException
+	public void checkShortened(String inmsg, User user) throws IOException
 	{
 		boolean shortened = false;
 //		for(int i = 0; i<BadURLS.size(); i++)
@@ -299,7 +347,7 @@ public class Parser implements Runnable
 		boolean permit=false;
 		
 		permit=user.equals(permitted);
-		int largeC =0;
+		
 		if(!(isMod(user)||permit))
 			for(int i=0;i<words.length;i++){
 				char[] chars = words[i].toCharArray();
