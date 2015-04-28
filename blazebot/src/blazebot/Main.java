@@ -73,7 +73,7 @@ public class Main {
 	            	}
 	            	else if(line.contains("PRIVMSG"))
 	            	{
-	            		parser.checkDisallowed(line, User.getUser(line.substring(1, line.indexOf("!"))));
+	            		parser.checkShortened(line, User.getUser(line.substring(1, line.indexOf("!"))));
 	            		parser.commandParser(line);
 	            	}
 	            	else
