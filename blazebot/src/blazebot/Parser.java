@@ -73,12 +73,13 @@ public class Parser implements Runnable
 		}
 		if(params[0].equalsIgnoreCase("!commands")&&isMod(user))
 		{
+			Stack<String> dupes = new Stack<String>();
 			String comString = "";
 			for(int i=0;i<commands.size();i++)
 			{
 				comString = comString+commands.get(i)[0]+", ";
 			}
-			comString = comString + comString.substring(0, comString.length()-2);
+			comString = comString.substring(0, comString.length()-2);
 			Main.chatMsg(comString);
 		}
 		if(params[0].equalsIgnoreCase("!addpoll")&&isMod(user)){
@@ -113,8 +114,6 @@ public class Parser implements Runnable
 //				
 //			}
 //		}
-		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
-		
 		/////////////Main Commands //////////////////
 		
 		
@@ -233,8 +232,8 @@ public class Parser implements Runnable
 				{
 					if(!user.isReal)
 						Main.chatMsg(user.name + " Please wait until twitch registers you");
-					else if(activePoll==null)
-						Main.chatMsg(user.name + " There is no active poll");
+					//else if(activePoll==null)
+						//Main.chatMsg(user.name + " There is no active poll");
 				}
 		if(params[0].equalsIgnoreCase("!endPoll"))
 		{
