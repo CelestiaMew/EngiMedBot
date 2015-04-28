@@ -5,10 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.JEditorPane;
+
+import blazebot.Poll.Option;
 
 public class Parser implements Runnable
 {
@@ -28,6 +33,14 @@ public class Parser implements Runnable
 		User user = User.getUser(sender);
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		System.out.println(sender+": "+message);
+		if(inmsg.toLowerCase().contains("blaze") && inmsg.toLowerCase().contains("favorite ship"))
+		{
+			Main.chatMsg("Blaze would say Zoltan C");
+		}
+		if(inmsg.toLowerCase().contains("do you like waffles"))
+		{
+			Main.chatMsg("/me always like waffles, its like a pancake with CHARACTER");
+		}
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 			return;
 		String[] params = message.split(" ");
@@ -81,11 +94,65 @@ public class Parser implements Runnable
 				}
 			}
 		}
-		
-		if(inmsg.toLowerCase().contains("blaze") && inmsg.toLowerCase().contains("favorite ship"))
-		{
-			Main.chatMsg("Blaze would say Zoltan C");
+		if(params[0].equalsIgnoreCase("!commands")&&isMod(user)){
+			String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !vote !endpoll",str2="User Commands:";
+			
+			for(int i=0;i<commands.size();i++){
+				String[] cmds=commands.get(i);
+				if(cmds[1].equals("mod")){
+					str+=" "+cmds[0];
+				}else{
+					str2+=" "+cmds[0];
+				}
+			}
+			str+=" Polls ";
+			for(int i=0;i<Poll.polls.size();i++){
+				str+=" "+Poll.polls.get(i).command;
+			}
+			Main.chatMsg(str);
+			Main.chatMsg(str2);
 		}
+		if(params[0].equalsIgnoreCase("!help")&&isMod(user)){
+			
+			switch(params[1].toLowerCase()){
+			case "!uptime":Main.chatMsg("user access; Shows time stream has been active, use: !uptime [nameofstream]");return;
+			case "!addcmd":Main.chatMsg("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>");return;
+			case "!removecmd":Main.chatMsg("mod access; Shows time stream has been active, use: !removecmd !<command>");return;
+			case "!addpoll":Main.chatMsg("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...");return;
+			case "!removepoll":Main.chatMsg("mod access; Removes a poll, use: !removepoll !<pollcommand>");return;
+			case "!permit":Main.chatMsg("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)");return;
+			case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
+			case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
+			case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
+			case "!help":Main.chatMsg("mod access; Shows help messages, seriously, why would this ever be used, use: !endpoll");return;
+			}
+			for(int i=0;i<commands.size();i++){
+				String[] cmds=commands.get(i);
+				if(cmds[0].equalsIgnoreCase(params[1])){
+					Main.chatMsg(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2]);
+					return;
+				}
+				
+			}
+			
+			for(int i=0;i<Poll.polls.size();i++){
+				Poll cmds=Poll.polls.get(i);
+				if(cmds.command.equalsIgnoreCase(params[1])){
+					String str="";
+					for(Option o : cmds.options){
+						str+=o.name+" ";
+					}
+					
+					Main.chatMsg("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+str);
+					return;
+				}
+				
+			}
+			Main.chatMsg("Command not found, use !commands to get a list of all commands, use !commands or use help for commands !help !<command/pollname>");
+			
+		}
+		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
+		
 		/////////////Main Commands //////////////////
 		
 		
@@ -95,7 +162,7 @@ public class Parser implements Runnable
 			if(permitted.isReal)
 			{
 				permitted.linkPermitted = true;
-				Main.chatMsg(permitted.name+" Permmited, post your link now");
+				Main.chatMsg(permitted.name+" Permitted, post your link now");
 			}
 			else
 			{
@@ -185,20 +252,20 @@ public class Parser implements Runnable
 								}
 						}
 					}
-					if(params[0].equalsIgnoreCase("!changevote"))
-					{
-						if(params.length > 1)
-						{
-							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
-							//use the Poll.vote(thing, user, optionname) for checking these
-							Main.chatMsg("Changed Vote");
-						}
-					}
-					if(params[0].equalsIgnoreCase("!pullout"))
-					{
-						
-						//ShipPoll.removeVote(sender);
-					}
+//					if(params[0].equalsIgnoreCase("!changevote"))
+//					{
+//						if(params.length > 1)
+//						{
+//							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
+//							//use the Poll.vote(thing, user, optionname) for checking these
+//							Main.chatMsg("Changed Vote");
+//						}
+//					}
+//					if(params[0].equalsIgnoreCase("!pullout"))
+//					{
+//						
+//						//ShipPoll.removeVote(sender);
+//					}
 				}
 				else
 				{
@@ -264,6 +331,7 @@ public class Parser implements Runnable
 		}
 	}
 	User permitted=null;
+	String[] protocols = new String[]{"http://","https://"};
 	public void checkShortened(String inmsg, User user) throws IOException
 	{
 		boolean shortened = false;
@@ -279,10 +347,7 @@ public class Parser implements Runnable
 		boolean permit=false;
 		
 		permit=user.equals(permitted);
-		if(permit)
-		{
-			permitted=null;
-		}
+		
 		if(!(isMod(user)||permit))
 			for(int i=0;i<words.length;i++){
 				char[] chars = words[i].toCharArray();
@@ -293,7 +358,23 @@ public class Parser implements Runnable
 							if(Character.isAlphabetic(chars[ii-2])&&Character.isAlphabetic(chars[ii-1])&&Character.isAlphabetic(chars[ii+2])&&Character.isAlphabetic(chars[ii+1]))
 								count++;
 					if(count>0&&count<3){
-						shortened=true;
+						if(count==1){
+							String word=words[i];
+							if(word.contains("."))
+								try{
+									
+									new JEditorPane((word.contains("://") ? "" : "http://") +word);
+									
+									shortened=true;
+								}catch(MalformedURLException e){
+									
+								}catch(UnknownHostException e){
+									
+								}
+						}else
+							shortened=true;
+						if(count>1&&words[i].indexOf('/',words[i].indexOf('.'))>=0)
+							shortened=true;
 						break;
 					}
 				}catch(IndexOutOfBoundsException e){
@@ -302,6 +383,11 @@ public class Parser implements Runnable
 			}
 		if(shortened)
 		{
+			if(permit)
+			{
+				permitted=null;
+				return;
+			}
 			Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
 	    	try {
 				Thread.sleep(100);
@@ -309,7 +395,7 @@ public class Parser implements Runnable
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-	    	Main.chatMsg(".timeout "+user.name+" 1");
+	    	Main.chatMsg(".timeout "+user.name.trim()+" 1");
 		}
 	}
 	public static void save()throws IOException{
@@ -329,6 +415,7 @@ public class Parser implements Runnable
 		{
 			return true;//sure
 		}
+		//return false;
 		return user.isMod;
 	}
 	
