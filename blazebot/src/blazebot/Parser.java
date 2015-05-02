@@ -7,9 +7,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Date;//control shift o
 import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JEditorPane;
 
@@ -31,16 +30,12 @@ public class Parser implements Runnable
 	{
 		String sender = inmsg.substring(1, inmsg.indexOf("!"));
 		User user = User.getUser(sender);
+		user.lastMsg = new Date().getTime();
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		System.out.println(sender+": "+message);
-		if(inmsg.toLowerCase().contains("blaze") && inmsg.toLowerCase().contains("favorite ship"))
-		{
-			Main.chatMsg("Blaze would say Zoltan C");
-		}
-		if(inmsg.toLowerCase().contains("do you like waffles"))
-		{
-			Main.chatMsg("/me always like waffles, its like a pancake with CHARACTER");
-		}
+		//>.>
+		//<.<
+		//@deprecated
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 			return;
 		String[] params = message.split(" ");
@@ -124,7 +119,9 @@ public class Parser implements Runnable
 			case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
 			case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
 			case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
+			case "!draw":Main.chatMsg("mod access; Draws a random user in chat that has chatted in a specified amount of time, use: !draw [seconds]");return;
 			case "!help":Main.chatMsg("mod access; Shows help messages, seriously, why would this ever be used, use: !endpoll");return;
+			
 			}
 			for(int i=0;i<commands.size();i++){
 				String[] cmds=commands.get(i);
@@ -153,8 +150,17 @@ public class Parser implements Runnable
 		}
 		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
 		
-		/////////////Main Commands //////////////////
-		
+		/////////////Main Commands ////////////////// 
+		if(params[0].equalsIgnoreCase("!draw")&&isMod(user)){
+			User drawUser;
+			long drawTime = 600000; // default
+			if(params.length>1)
+				try{drawTime = Integer.valueOf(params[1]) * 1000;}catch(Exception e){e.printStackTrace();}
+			do{
+				drawUser = User.users.get((int)(Math.random()*((double)User.users.size())));
+			}while(!(drawUser.isReal&&new Date().getTime() - drawUser.lastMsg < drawTime&&!drawUser.name.equalsIgnoreCase("engimedbot")));
+			Main.chatMsg("Random draw of chatters in the past " + drawTime/1000 + " seconds : " + drawUser.name);
+		}
 		
 		if(params[0].equalsIgnoreCase("!permit")&&isMod(user))
 		{
@@ -185,7 +191,7 @@ public class Parser implements Runnable
 	    	Main.chatMsg("Pong");
 	    }
 		/////////////////End//////////////////////
-		for(int i=0;i<commands.size();i++)
+		for(int i=0;i<commands.size();i++)// loops through all stored commands
 		{
 			String[] curcmd = commands.get(i);
 			if(params[0].equalsIgnoreCase(curcmd[0]))
@@ -312,7 +318,7 @@ public class Parser implements Runnable
 		String[] params = inmsg.split(" ");
 		if(params[3].equals("+o")){
 			User.getUser(params[4]).isMod=true;
-			System.out.println("Promoted "+params[4]);
+			System.out.println("Promoted "+params[4]);//i have never seen one but it probably has the same +o tag
 		}
 	}
 	public void userParser(String inmsg)
@@ -344,9 +350,8 @@ public class Parser implements Runnable
 //		}
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		String[] words = message.split(" ");
-		boolean permit=false;
 		
-		permit=user.equals(permitted);
+		boolean permit=user.equals(permitted);
 		
 		if(!(isMod(user)||permit))
 			for(int i=0;i<words.length;i++){

@@ -63,7 +63,7 @@ public class Main {
 	            }
 	            else 
 	            {
-	            	if(line.contains("353")||line.contains("JOIN")||line.contains("PART"))
+	            	if(line.contains("353")||line.contains("JOIN")||line.contains("PART"))//look in User class
 	            	{
 	            		parser.userParser(line);
 	            	}
@@ -71,7 +71,7 @@ public class Main {
 	            	{
 	            		parser.modParser(line);
 	            	}
-	            	else if(line.contains("PRIVMSG"))
+	            	else if(line.contains("PRIVMSG"))// you dont have to worry about any of this for commands
 	            	{
 	            		parser.checkShortened(line, User.getUser(line.substring(1, line.indexOf("!"))));
 	            		parser.commandParser(line);
