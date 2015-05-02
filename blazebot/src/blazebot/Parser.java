@@ -42,7 +42,9 @@ public class Parser implements Runnable
 			Main.chatMsg("/me always like waffles, its like a pancake with CHARACTER");
 		}
 		if(!message.startsWith("!")||user.name.equals(Main.name))
+		{
 			return;
+		}
 		String[] params = message.split(" ");
 		if(params[0].startsWith("!addcmd")&&isMod(user))
 		{
@@ -88,7 +90,9 @@ public class Parser implements Runnable
 		if(params[0].equalsIgnoreCase("!removepoll")&&isMod(user)){
 			String cmdtoremove=params[1];
 			for(Poll poll : Poll.polls){
-				if(poll.command.equalsIgnoreCase(cmdtoremove)){
+				if(poll.command.equalsIgnoreCase(cmdtoremove))
+				{
+					Main.chatMsg("Removed Poll "+cmdtoremove);
 					Poll.polls.remove(poll);
 					break;
 				}
@@ -243,6 +247,7 @@ public class Parser implements Runnable
 						if(params.length > 1)
 						{
 							if(!voted.contains(user))
+							{
 								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
 									total++;
 									voted.push(user);
@@ -250,17 +255,43 @@ public class Parser implements Runnable
 								}else{
 									Main.chatMsg("That is an invalid option "+user.name);
 								}
+							}
+							else
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
 						}
 					}
-//					if(params[0].equalsIgnoreCase("!changevote"))
-//					{
-//						if(params.length > 1)
-//						{
-//							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
-//							//use the Poll.vote(thing, user, optionname) for checking these
-//							Main.chatMsg("Changed Vote");
-//						}
-//					}
+					if(params[0].equalsIgnoreCase("!changevote"))
+					{
+						if(params.length > 1)
+						{
+							if(!voted.contains(user))
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									total++;
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
+							else
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
+						}
+					}
 //					if(params[0].equalsIgnoreCase("!pullout"))
 //					{
 //						
