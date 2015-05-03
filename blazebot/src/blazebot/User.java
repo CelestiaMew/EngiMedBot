@@ -16,7 +16,8 @@ public class User {
 	public final String name;
 	public boolean isMod = false;
 	public boolean linkPermitted = false;
-	public boolean isReal = true;
+	public boolean isReal = true;// this is default
+	public long lastMsg = 0;
 	public static User addUser(String nme)
 	{
 		for(int i=0;i<users.size();i++)
