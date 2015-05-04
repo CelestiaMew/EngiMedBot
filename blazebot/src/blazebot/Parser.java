@@ -14,6 +14,8 @@ import javax.swing.JEditorPane;
 
 import blazebot.Poll.Option;
 
+import blazebot.Poll.Option;
+
 public class Parser implements Runnable
 {
 	static Stack<String[]> commands = new Stack<String[]>();
@@ -24,8 +26,6 @@ public class Parser implements Runnable
 		new Thread(this).start();
 	}
 	public static Poll activePoll;
-	static boolean O2Spamming = false;
-	static boolean aboutSpamming = false;
 	public void commandParser(String inmsg) throws IOException, NoSuchMethodException, SecurityException
 	{
 		String sender = inmsg.substring(1, inmsg.indexOf("!"));
@@ -37,7 +37,9 @@ public class Parser implements Runnable
 		//<.<
 		//@deprecated
 		if(!message.startsWith("!")||user.name.equals(Main.name))
+		{
 			return;
+		}
 		String[] params = message.split(" ");
 		if(params[0].startsWith("!addcmd")&&isMod(user))
 		{
@@ -83,10 +85,68 @@ public class Parser implements Runnable
 		if(params[0].equalsIgnoreCase("!removepoll")&&isMod(user)){
 			String cmdtoremove=params[1];
 			for(Poll poll : Poll.polls){
-				if(poll.command.equalsIgnoreCase(cmdtoremove)){
+				if(poll.command.equalsIgnoreCase(cmdtoremove))
+				{
+					Main.chatMsg("Removed Poll "+cmdtoremove);
 					Poll.polls.remove(poll);
 					break;
 				}
+			}
+		}
+		if(params[0].equalsIgnoreCase("!help")&&isMod(user)){
+			if(params.length==2){
+				switch(params[1].toLowerCase()){
+				case "!uptime":Main.chatMsg("user access; Shows time stream has been active, use: !uptime [nameofstream]");return;
+				case "!addcmd":Main.chatMsg("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>");return;
+				case "!removecmd":Main.chatMsg("mod access; Shows time stream has been active, use: !removecmd !<command>");return;
+				case "!addpoll":Main.chatMsg("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...");return;
+				case "!removepoll":Main.chatMsg("mod access; Removes a poll, use: !removepoll !<pollcommand>");return;
+				case "!permit":Main.chatMsg("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)");return;
+				case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
+				case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
+				case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
+				case "!help":Main.chatMsg("mod access; Shows help messages or with no parameter shows all commands, seriously..., use: !help, !help !<command>");return;
+				}
+				for(int i=0;i<commands.size();i++){
+					String[] cmds=commands.get(i);
+					if(cmds[0].equalsIgnoreCase(params[1])){
+						Main.chatMsg(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2]);
+						return;
+					}
+					
+				}
+				
+				for(int i=0;i<Poll.polls.size();i++){
+					Poll cmds=Poll.polls.get(i);
+					if(cmds.command.equalsIgnoreCase(params[1])){
+						String str="";
+						for(Option o : cmds.options){
+							str+=o.name+" ";
+						}
+						
+						Main.chatMsg("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+str);
+						return;
+					}
+					
+				}
+				Main.chatMsg("Command not found");
+			}else if(params.length==1){
+				String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !endpoll",str2="User Commands: !vote";
+				
+				for(int i=0;i<commands.size();i++){
+					String[] cmds=commands.get(i);
+					if(cmds[1].equals("mod")){
+						str+=" "+cmds[0];
+					}else{
+						str2+=" "+cmds[0];
+					}
+				}
+				str+=" Polls ";
+				for(int i=0;i<Poll.polls.size();i++){
+					str+=" "+Poll.polls.get(i).command;
+				}
+				Main.chatMsg(str);
+				Main.chatMsg(str2);
 			}
 		}
 		if(params[0].equalsIgnoreCase("!commands")&&isMod(user)){
@@ -146,7 +206,6 @@ public class Parser implements Runnable
 				
 			}
 			Main.chatMsg("Command not found, use !commands to get a list of all commands, use !commands or use help for commands !help !<command/pollname>");
-			
 		}
 		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
 		
@@ -249,6 +308,7 @@ public class Parser implements Runnable
 						if(params.length > 1)
 						{
 							if(!voted.contains(user))
+							{
 								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
 									total++;
 									voted.push(user);
@@ -256,17 +316,43 @@ public class Parser implements Runnable
 								}else{
 									Main.chatMsg("That is an invalid option "+user.name);
 								}
+							}
+							else
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
 						}
 					}
-//					if(params[0].equalsIgnoreCase("!changevote"))
-//					{
-//						if(params.length > 1)
-//						{
-//							activePoll.new Vote(user, Main.combine(Arrays.copyOfRange(params,1,params.length)));
-//							//use the Poll.vote(thing, user, optionname) for checking these
-//							Main.chatMsg("Changed Vote");
-//						}
-//					}
+					if(params[0].equalsIgnoreCase("!changevote"))
+					{
+						if(params.length > 1)
+						{
+							if(!voted.contains(user))
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									total++;
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
+							else
+							{
+								if(Poll.vote(activePoll,user, Main.combine(Arrays.copyOfRange(params,1,params.length)))){
+									voted.push(user);
+									counted+=1;
+								}else{
+									Main.chatMsg("That is an invalid option "+user.name);
+								}
+							}
+						}
+					}
 //					if(params[0].equalsIgnoreCase("!pullout"))
 //					{
 //						
@@ -290,7 +376,7 @@ public class Parser implements Runnable
 	}
 	int delay=0;
 	int counted=0;
-	int total=0;;
+	int total=0;
 	Stack<User> voted = new Stack<User>();
 	public void run() {
 		while(true){
@@ -350,7 +436,6 @@ public class Parser implements Runnable
 //		}
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		String[] words = message.split(" ");
-		
 		boolean permit=user.equals(permitted);
 		
 		if(!(isMod(user)||permit))
