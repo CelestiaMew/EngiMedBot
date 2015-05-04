@@ -217,6 +217,10 @@ public class Parser implements Runnable
 				try{drawTime = Integer.valueOf(params[1]) * 1000;}catch(Exception e){e.printStackTrace();}
 			do{
 				drawUser = User.users.get((int)(Math.random()*((double)User.users.size())));
+				if(User.users.size()<1)
+				{
+					break;
+				}
 			}while(!(drawUser.isReal&&new Date().getTime() - drawUser.lastMsg < drawTime&&!drawUser.name.equalsIgnoreCase("engimedbot")));
 			Main.chatMsg("Random draw of chatters in the past " + drawTime/1000 + " seconds : " + drawUser.name);
 		}
