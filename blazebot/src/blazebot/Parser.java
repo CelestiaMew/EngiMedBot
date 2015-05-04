@@ -365,6 +365,7 @@ public class Parser implements Runnable
 					if(count>0&&count<3){
 						if(count==1){
 							String word=words[i];
+							shortened=true;
 							if(word.contains("."))
 								try{
 									
