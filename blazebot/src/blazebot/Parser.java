@@ -36,11 +36,11 @@ public class Parser implements Runnable
 		if(!user.isMod)
 			if(new Date().getTime()-user.lastCmd<10000)
 				return;
-		user.lastCmd=new Date().getTime();
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 		{
 			return;
 		}
+		user.lastCmd=new Date().getTime();
 		String[] params = message.split(" ");
 		if(params[0].startsWith("!addcmd")&&isMod(user))
 		{
