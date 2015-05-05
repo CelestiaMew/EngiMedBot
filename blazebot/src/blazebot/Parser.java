@@ -33,9 +33,9 @@ public class Parser implements Runnable
 		user.lastMsg = new Date().getTime();
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		System.out.println(sender+": "+message);
-		//>.>
-		//<.<
-		//@deprecated
+		if(!user.isMod)
+			if(new Date().getTime()-user.lastCmd<10000)
+				return;
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 		{
 			return;
@@ -249,6 +249,38 @@ public class Parser implements Runnable
 	    {
 	    	Main.chatMsg("Pong");
 	    }
+		try{
+			if(params[0].equalsIgnoreCase("!whatis")||params[0].equalsIgnoreCase("!whatisinfo")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				String info=Main.combine(item.info);
+				Main.chatMsg(info.substring(0, info.length()>200?200:info.length())+(info.length()>200?" ... platinumgod.co.uk for more":""));
+				return;
+			}
+			if(params[0].equalsIgnoreCase("!whatispools")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.chatMsg("Pools: "+Main.combine(item.pools));
+				return;
+			}
+			if(params[0].equalsIgnoreCase("!whatispickup")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.chatMsg(item.pickup);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("!whatisid")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.chatMsg("ID: "+item.id);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("!whatisunlock")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.chatMsg(item.unlock);
+				return;
+			}
+		}catch(NullPointerException e){
+			e.printStackTrace();
+			Main.chatMsg("Item not found");
+			return;
+		}
 		/////////////////End//////////////////////
 		for(int i=0;i<commands.size();i++)// loops through all stored commands
 		{

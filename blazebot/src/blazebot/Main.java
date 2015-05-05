@@ -22,6 +22,7 @@ public class Main {
 	//static String channel = "#darkmagiciangirl_";
 	static BufferedWriter writer=null;
 	static BufferedReader reader=null;
+	static ItemSearch searcher = new ItemSearch();
 	public static void main(String[] args)
 	{
 		JFrame f = new JFrame();

@@ -18,6 +18,7 @@ public class User {
 	public boolean linkPermitted = false;
 	public boolean isReal = true;// this is default
 	public long lastMsg = 0;
+	public long lastCmd = 0;
 	public static User addUser(String nme)
 	{
 		for(int i=0;i<users.size();i++)
