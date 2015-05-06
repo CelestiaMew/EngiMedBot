@@ -1,5 +1,6 @@
 package blazebot;
 
+import java.awt.image.ImagingOpException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +14,6 @@ import java.util.Stack;
 import javax.swing.JEditorPane;
 
 import blazebot.Poll.Option;
-
 import blazebot.Poll.Option;
 
 public class Parser implements Runnable
@@ -26,6 +26,7 @@ public class Parser implements Runnable
 		new Thread(this).start();
 	}
 	public static Poll activePoll;
+	public long lastcmd=0;
 	public void commandParser(String inmsg) throws IOException, NoSuchMethodException, SecurityException
 	{
 		String sender = inmsg.substring(1, inmsg.indexOf("!"));
@@ -33,14 +34,15 @@ public class Parser implements Runnable
 		user.lastMsg = new Date().getTime();
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		System.out.println(sender+": "+message);
-		if(!user.isMod)
-			if(new Date().getTime()-user.lastCmd<10000)
+		if(!user.isMod&&activePoll==null)
+			if(new Date().getTime()-user.lastCmd<10000||new Date().getTime()-lastcmd<5000)
 				return;
 		if(!message.startsWith("!")||user.name.equals(Main.name))
 		{
 			return;
 		}
 		user.lastCmd=new Date().getTime();
+		lastcmd=new Date().getTime();
 		String[] params = message.split(" ");
 		if(params[0].startsWith("!addcmd")&&isMod(user))
 		{
@@ -484,10 +486,10 @@ public class Parser implements Runnable
 						if(".".equals(""+chars[ii]))
 							if(Character.isAlphabetic(chars[ii-2])&&Character.isAlphabetic(chars[ii-1])&&Character.isAlphabetic(chars[ii+2])&&Character.isAlphabetic(chars[ii+1]))
 								count++;
-					if(count>0&&count<3){
+					if(count>0&&count<4){
 						if(count==1){
 							String word=words[i];
-							shortened=true;
+							
 							if(word.contains("."))
 								try{
 									
@@ -498,6 +500,8 @@ public class Parser implements Runnable
 									
 								}catch(UnknownHostException e){
 									
+								}catch(IOException e){
+									shortened=true;
 								}
 						}else
 							shortened=true;
