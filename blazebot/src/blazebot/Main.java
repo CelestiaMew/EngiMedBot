@@ -4,10 +4,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.DatagramSocket;
 import java.net.Socket;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
@@ -52,10 +58,19 @@ public class Main {
 			}
 			writer.write("JOIN "+channel+"\r\n");
 			writer.flush();
-			chatMsg(".me is now Online");
+			if(checkUpdated())
+			{
+				chatMsg(".me Just Updated");
+			}
+			else
+			{
+				chatMsg(".me is now Online");
+			}
 			Parser parser = new Parser();
 			Parser.load();
 			new Ticker(parser,Parser.class.getMethod("save"),600,true);
+			checkForUpdates();
+			new Ticker(Main.class,Main.class.getMethod("checkForUpdates"),10,true);
 			while ((line=reader.readLine())!=null) {
 				System.out.println(line);
 	            if (line.toLowerCase().contains("ping ")) 
@@ -154,5 +169,53 @@ public class Main {
 			e.printStackTrace();
 		}
 		System.exit(0);
+	}
+	public static void checkForUpdates() throws IOException
+	{
+		if(new File("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/BotUpdate.jar").exists())
+		{
+			new File("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/BotUpdate.txt").createNewFile();
+			chatMsg("Updating...");
+			Process proc = Runtime.getRuntime().exec("java -jar "+"C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/updater.jar");
+			System.exit(0);
+		}
+	}
+	public static boolean checkUpdated() throws IOException
+	{
+		boolean yes = false;
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/BotUpdate.txt"));
+			String line = "false";
+			line = reader.readLine();
+			reader.close();
+			yes = Boolean.parseBoolean(line);
+		}
+		catch (FileNotFoundException e) 
+		{
+			
+		}
+		catch (NullPointerException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		File file = new File("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/BotUpdate.txt");
+		file.createNewFile();
+		FileOutputStream out;
+		try
+		{
+			out = new FileOutputStream(file.toString());
+			out.write("false".getBytes());
+			out.close();
+		} 
+		catch (IOException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return yes;
 	}
 }
