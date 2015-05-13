@@ -3,7 +3,9 @@ package blazebot;
 import java.awt.image.ImagingOpException;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -12,6 +14,9 @@ import java.util.Date;//control shift o
 import java.util.Stack;
 
 import javax.swing.JEditorPane;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import blazebot.Poll.Option;
 import blazebot.Poll.Option;
@@ -152,66 +157,24 @@ public class Parser implements Runnable
 				Main.chatMsg(str2);
 			}
 		}
-		if(params[0].equalsIgnoreCase("!commands")&&isMod(user)){
-			String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !vote !endpoll",str2="User Commands:";
-			
-			for(int i=0;i<commands.size();i++){
-				String[] cmds=commands.get(i);
-				if(cmds[1].equals("mod")){
-					str+=" "+cmds[0];
-				}else{
-					str2+=" "+cmds[0];
-				}
-			}
-			str+=" Polls ";
-			for(int i=0;i<Poll.polls.size();i++){
-				str+=" "+Poll.polls.get(i).command;
-			}
-			Main.chatMsg(str);
-			Main.chatMsg(str2);
-		}
-		if(params[0].equalsIgnoreCase("!help")&&isMod(user)){
-			
-			switch(params[1].toLowerCase()){
-			case "!uptime":Main.chatMsg("user access; Shows time stream has been active, use: !uptime [nameofstream]");return;
-			case "!addcmd":Main.chatMsg("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>");return;
-			case "!removecmd":Main.chatMsg("mod access; Shows time stream has been active, use: !removecmd !<command>");return;
-			case "!addpoll":Main.chatMsg("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...");return;
-			case "!removepoll":Main.chatMsg("mod access; Removes a poll, use: !removepoll !<pollcommand>");return;
-			case "!permit":Main.chatMsg("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)");return;
-			case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
-			case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
-			case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
-			case "!draw":Main.chatMsg("mod access; Draws a random user in chat that has chatted in a specified amount of time, use: !draw [seconds]");return;
-			case "!help":Main.chatMsg("mod access; Shows help messages, seriously, why would this ever be used, use: !endpoll");return;
-			
-			}
-			for(int i=0;i<commands.size();i++){
-				String[] cmds=commands.get(i);
-				if(cmds[0].equalsIgnoreCase(params[1])){
-					Main.chatMsg(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2]);
-					return;
-				}
-				
-			}
-			
-			for(int i=0;i<Poll.polls.size();i++){
-				Poll cmds=Poll.polls.get(i);
-				if(cmds.command.equalsIgnoreCase(params[1])){
-					String str="";
-					for(Option o : cmds.options){
-						str+=o.name+" ";
-					}
-					
-					Main.chatMsg("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+str);
-					return;
-				}
-				
-			}
-			Main.chatMsg("Command not found, use !commands to get a list of all commands, use !commands or use help for commands !help !<command/pollname>");
-		}
-		System.out.println(inmsg.toLowerCase().contains("blaze") +":"+ inmsg.toLowerCase().contains("favorite ship"));
-		
+//		if(params[0].equalsIgnoreCase("!commands")&&isMod(user)){
+//			String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !vote !endpoll",str2="User Commands:";
+//			
+//			for(int i=0;i<commands.size();i++){
+//				String[] cmds=commands.get(i);
+//				if(cmds[1].equals("mod")){
+//					str+=" "+cmds[0];
+//				}else{
+//					str2+=" "+cmds[0];
+//				}
+//			}
+//			str+=" Polls ";
+//			for(int i=0;i<Poll.polls.size();i++){
+//				str+=" "+Poll.polls.get(i).command;
+//			}
+//			Main.chatMsg(str);
+//			Main.chatMsg(str2);
+//		}
 		/////////////Main Commands ////////////////// 
 		if(params[0].equalsIgnoreCase("!draw")&&isMod(user)){
 			User drawUser;
@@ -310,6 +273,41 @@ public class Parser implements Runnable
 					return;
 				}
 			}
+		if(params[0].equalsIgnoreCase("!follower") && isMod(user))
+		{
+			URL url;
+		    InputStream is = null;
+		    BufferedReader br = null;
+			try 
+			{
+				url = new URL("https://api.twitch.tv/kraken/channels/"+Main.channel.substring(1)+"/follows?direction=DESC&limit=1&offset=0");
+		        is = url.openStream();  // throws an IOException
+		        br = new BufferedReader(new InputStreamReader(is));
+		        JSONObject a = new JSONObject(br.readLine());
+		        JSONArray msg = (JSONArray) a.get("follows");
+	            String latestFollower = (String) ((JSONObject) ((JSONObject) msg.get(0)).get("user")).get("display_name");
+	            Main.chatMsg("The latest follower is "+latestFollower);
+		    }
+			catch (MalformedURLException mue) 
+			{
+		         mue.printStackTrace();
+		    }
+			catch (IOException ioe) 
+			{
+				Main.chatMsg("Twitch API is down D:");
+		    }
+			finally 
+		    {
+		        try 
+		        {
+		            if (is != null) is.close();
+		        }
+		        catch (IOException ioe) 
+		        {
+		            // nothing to see here
+		        }
+		    }
+		}
 		if(params[0].equalsIgnoreCase("!uptime"))
 		{
 			String channelt=Main.channel.substring(1);
