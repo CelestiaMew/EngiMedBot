@@ -63,13 +63,13 @@ public class ItemSearch {
 		}
 		return null;
 	}
-	public String getContent(String content, String tag, String endtag){
+	public static String getContent(String content, String tag, String endtag){
 		return content.substring(content.indexOf(tag)+tag.length(), content.indexOf(endtag,content.indexOf(tag)+tag.length()));
 	}
-	public int contains(String str, String regex){
+	public static int contains(String str, String regex){
 		return str.split(regex).length-1;
 	}
-	public String[] getContents(String content,String tag, String endtag){
+	public static String[] getContents(String content,String tag, String endtag){
 		int index = 0;
 		int i=0;
 		String[] elements = new String[contains(content,tag)];

@@ -15,10 +15,6 @@ import java.util.Stack;
 
 import javax.swing.JEditorPane;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import blazebot.Poll.Option;
 import blazebot.Poll.Option;
 
 public class Parser implements Runnable
@@ -275,38 +271,43 @@ public class Parser implements Runnable
 			}
 		if(params[0].equalsIgnoreCase("!follower") && isMod(user))
 		{
-			URL url;
-		    InputStream is = null;
-		    BufferedReader br = null;
-			try 
-			{
-				url = new URL("https://api.twitch.tv/kraken/channels/"+Main.channel.substring(1)+"/follows?direction=DESC&limit=1&offset=0");
-		        is = url.openStream();  // throws an IOException
-		        br = new BufferedReader(new InputStreamReader(is));
-		        JSONObject a = new JSONObject(br.readLine());
-		        JSONArray msg = (JSONArray) a.get("follows");
-	            String latestFollower = (String) ((JSONObject) ((JSONObject) msg.get(0)).get("user")).get("display_name");
-	            Main.chatMsg("The latest follower is "+latestFollower);
-		    }
-			catch (MalformedURLException mue) 
-			{
-		         mue.printStackTrace();
-		    }
-			catch (IOException ioe) 
-			{
-				Main.chatMsg("Twitch API is down D:");
-		    }
-			finally 
-		    {
-		        try 
-		        {
-		            if (is != null) is.close();
-		        }
-		        catch (IOException ioe) 
-		        {
-		            // nothing to see here
-		        }
-		    }
+			//TODO REMOVE next X amount of lines
+//				@deprecated for problems of the fact that i dont have this parser and im simply going to use an already existant function
+//			URL url;
+//		    InputStream is = null;
+//		    BufferedReader br = null;
+//			try 
+//			{
+//				url = new URL("https://api.twitch.tv/kraken/channels/"+Main.channel.substring(1)+"/follows?direction=DESC&limit=1&offset=0");
+//		        is = url.openStream();  // throws an IOException
+//		        br = new BufferedReader(new InputStreamReader(is));
+//		        JSONObject a = new JSONObject(br.readLine());
+//		        JSONArray msg = (JSONArray) a.get("follows");
+//	            String latestFollower = (String) ((JSONObject) ((JSONObject) msg.get(0)).get("user")).get("display_name");
+//	            Main.chatMsg("The latest follower is "+latestFollower);
+//		    }
+//			catch (MalformedURLException mue) 
+//			{
+//		         mue.printStackTrace();
+//		    }
+//			catch (IOException ioe) 
+//			{
+//				Main.chatMsg("Twitch API is down D:");
+//		    }
+//			finally 
+//		    {
+//		        try 
+//		        {
+//		            if (is != null) is.close();
+//		        }
+//		        catch (IOException ioe) 
+//		        {
+//		            // nothing to see here
+//		        }
+//		    }
+			JEditorPane jep = new JEditorPane("https://api.twitch.tv/kraken/channels/recursiveblaze/follows?direction=DESC&limit=1&offset=0");
+			String text = jep.getText();
+			Main.chatMsg("The latest follower is "+ItemSearch.getContent(text, "\"display_name\":\"", "\",\""));
 		}
 		if(params[0].equalsIgnoreCase("!uptime"))
 		{
