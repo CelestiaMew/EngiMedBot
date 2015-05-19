@@ -309,6 +309,43 @@ public class Parser implements Runnable
 			String text = jep.getText();
 			Main.chatMsg("The latest follower is "+ItemSearch.getContent(text, "\"display_name\":\"", "\",\""));
 		}
+		if(params[0].equalsIgnoreCase("!timeoutlink"))
+		{
+			long time = new Date().getTime();
+			if(params[1].equalsIgnoreCase("help"))
+			{
+				Main.chatMsg("d = day, w = week, m = minute, nothing = hour, ex \"!timeoutlink example 1d\" will timeout for a day but \"!timeoutlink example 1\" will be for one hour");
+			}
+			try
+			{
+				if(params[2].contains("d"))
+				{
+					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" day(s)");
+					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000;
+				}
+				else if(params[2].contains("w"))
+				{
+					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" week(s)");
+					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000*7;
+				}
+				else if(params[2].contains("m"))
+				{
+					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" minute(s)");
+					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*60000;
+				}
+				else
+				{
+					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" hour(s)");
+					time = time+Integer.parseInt(params[2])*3600000;
+				}
+			}
+			catch(NumberFormatException e)
+			{
+				Main.chatMsg("not formated correctly, use !timeoutlink help for help");
+			}
+			String[] data = {User.getUser(params[1]).name, String.valueOf(time)};
+			User.linkTimedOut.push(data);
+		}
 		if(params[0].equalsIgnoreCase("!uptime"))
 		{
 			String channelt=Main.channel.substring(1);
@@ -427,9 +464,9 @@ public class Parser implements Runnable
 					if(counted>0)
 						Main.chatMsg(counted + " Votes counted, "+total+" total");//oh yeh
 					counted=0;
-					delay=500;
+					delay=50;
 				}
-				Thread.sleep(10);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -512,6 +549,23 @@ public class Parser implements Runnable
 					//e.printStackTrace();
 				}
 			}
+		boolean timed = false;
+		for(int i=0; i<User.linkTimedOut.size(); i++)
+		{
+			if(User.linkTimedOut.get(i)[0].equals(user.name))
+			{
+				timed = true;
+			}
+		}
+		if(permit)
+		{
+			permitted=null;
+			return;
+		}
+		if(timed && shortened)
+		{
+			Main.chatMsg(user.name+" you are timed out from posting links");
+		}
 		if(shortened)
 		{
 			if(permit)
@@ -549,5 +603,14 @@ public class Parser implements Runnable
 		//return false;
 		return user.isMod;
 	}
-	
+	static void updateTimeouts()
+	{
+		for(int i=0; i<User.linkTimedOut.size(); i++)
+		{
+			if(Integer.parseInt(User.linkTimedOut.get(i)[1])<new Date().getTime())
+			{
+				User.linkTimedOut.remove(i);
+			}
+		}
+	}
 }

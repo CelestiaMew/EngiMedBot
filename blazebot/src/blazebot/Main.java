@@ -23,8 +23,8 @@ public class Main {
 	static String name = "EngiMedBot";
 	//static String pass = "oauth:4klv2yyxwvyuoq8lltzd4zrbnr94pl";
 	static String pass = "oauth:j6mop9v1grb3rizwgr2j1vo4uyyzhx";
-	//static String channel = "#maxfojtik";
-	static String channel = "#recursiveblaze";
+	static String channel = "#maxfojtik";
+	//static String channel = "#recursiveblaze";
 	//static String channel = "#darkmagiciangirl_";
 	static BufferedWriter writer=null;
 	static BufferedReader reader=null;
@@ -69,6 +69,7 @@ public class Main {
 			Parser parser = new Parser();
 			Parser.load();
 			new Ticker(parser,Parser.class.getMethod("save"),600,true);
+			new Ticker(parser,Parser.class.getMethod("updateTimeouts"),60,true);
 			checkForUpdates();
 			new Ticker(Main.class,Main.class.getMethod("checkForUpdates"),10,true);
 			while ((line=reader.readLine())!=null) {
