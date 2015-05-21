@@ -318,25 +318,28 @@ public class Parser implements Runnable
 			}
 			try
 			{
-				if(params[2].contains("d"))
+				if(params.length>=3)
 				{
-					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" day(s)");
-					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000;
-				}
-				else if(params[2].contains("w"))
-				{
-					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" week(s)");
-					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000*7;
-				}
-				else if(params[2].contains("m"))
-				{
-					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" minute(s)");
-					time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*60000;
-				}
-				else
-				{
-					Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" hour(s)");
-					time = time+Integer.parseInt(params[2])*3600000;
+					if(params[2].contains("d"))
+					{
+						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" day(s)");
+						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000;
+					}
+					else if(params[2].contains("w"))
+					{
+						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" week(s)");
+						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000*7;
+					}
+					else if(params[2].contains("m"))
+					{
+						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" minute(s)");
+						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*60000;
+					}
+					else
+					{
+						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" hour(s)");
+						time = time+Integer.parseInt(params[2])*3600000;
+					}
 				}
 			}
 			catch(NumberFormatException e)
@@ -562,10 +565,6 @@ public class Parser implements Runnable
 			permitted=null;
 			return;
 		}
-		if(timed && shortened)
-		{
-			Main.chatMsg(user.name+" you are timed out from posting links");
-		}
 		if(shortened)
 		{
 			if(permit)
@@ -573,9 +572,16 @@ public class Parser implements Runnable
 				permitted=null;
 				return;
 			}
-			Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
+			if(timed)
+			{
+				Main.chatMsg(user.name+" you are timed out from posting links");
+			}
+			else
+			{
+				Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
+			}
 	    	try {
-				Thread.sleep(100);
+				Thread.sleep(300);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -584,11 +590,13 @@ public class Parser implements Runnable
 		}
 	}
 	public static void save()throws IOException{
+		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg",User.linkTimedOut);
 		Poll.savePolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg",commands);
 		System.err.println("Saving commands");
 	}
 	public static void load()throws IOException{
+		User.linkTimedOut = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg");
 		Poll.loadPolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		commands = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg");
 		System.err.println("Loading commands");
@@ -603,12 +611,20 @@ public class Parser implements Runnable
 		//return false;
 		return user.isMod;
 	}
-	static void updateTimeouts()
+	public static void updateTimeouts()
 	{
 		for(int i=0; i<User.linkTimedOut.size(); i++)
 		{
-			if(Integer.parseInt(User.linkTimedOut.get(i)[1])<new Date().getTime())
+			if(Long.parseLong(User.linkTimedOut.get(i)[1])<new Date().getTime())
 			{
+				for(int ii=0; ii<User.users.size(); ii++)
+				{
+					if(User.users.get(ii).name.equalsIgnoreCase(User.linkTimedOut.get(i)[0]))
+					{
+						Main.chatMsg(User.linkTimedOut.get(i)[0]+", Your link timeout has been lifted");
+					}
+				}
+				System.out.println("Removing "+User.linkTimedOut.get(i)[0]+" from timeout list");
 				User.linkTimedOut.remove(i);
 			}
 		}

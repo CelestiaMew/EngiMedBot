@@ -14,14 +14,13 @@ public class User {
 		isMod=false;
 		isReal=false;
 	}
-	static Stack<String[]> linkTimedOut = new Stack<String[]>();
+	static Stack<String[]> linkTimedOut;
 	public final String name;
 	public boolean isMod = false;
 	public boolean linkPermitted = false;
 	public boolean isReal = true;// this is default
 	public long lastMsg = 0;
 	public long lastCmd = 0;
-	public long linktimeout = 0;
 	public static User addUser(String nme)
 	{
 		for(int i=0;i<users.size();i++)

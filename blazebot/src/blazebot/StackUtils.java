@@ -23,7 +23,8 @@ public class StackUtils
 		}
 		saveS(filename,newstack);
 	}
-	public static void saveS(String filename, Stack<String> lines) throws IOException{
+	public static void saveS(String filename, Stack<String> lines) throws IOException
+	{
 		PrintWriter pw = new PrintWriter(new File(filename));
 		for(int i=0;i<lines.size();i++)
 			pw.print(lines.get(i)+(i!=lines.size()-1?"\n":""));//okay so now we go up
