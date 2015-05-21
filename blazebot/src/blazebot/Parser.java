@@ -322,22 +322,22 @@ public class Parser implements Runnable
 				{
 					if(params[2].contains("d"))
 					{
-						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" day(s)");
+						Main.chatMsg("Timing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" day(s)");
 						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000;
 					}
 					else if(params[2].contains("w"))
 					{
-						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" week(s)");
+						Main.chatMsg("Timing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" week(s)");
 						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*86400000*7;
 					}
 					else if(params[2].contains("m"))
 					{
-						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" minute(s)");
+						Main.chatMsg("Timing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" minute(s)");
 						time = time+Integer.parseInt(params[2].substring(0, params[2].length()-1))*60000;
 					}
 					else
 					{
-						Main.chatMsg("Timeing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" hour(s)");
+						Main.chatMsg("Timing out "+params[1]+" for "+params[2].substring(0, params[2].length()-1)+" hour(s)");
 						time = time+Integer.parseInt(params[2])*3600000;
 					}
 				}
@@ -346,7 +346,7 @@ public class Parser implements Runnable
 			{
 				Main.chatMsg("not formated correctly, use !timeoutlink help for help");
 			}
-			String[] data = {User.getUser(params[1]).name, String.valueOf(time)};
+			String[] data = {User.getUser(params[1].replace("@","")).name, String.valueOf(time)};
 			User.linkTimedOut.push(data);
 		}
 		if(params[0].equalsIgnoreCase("!uptime"))
