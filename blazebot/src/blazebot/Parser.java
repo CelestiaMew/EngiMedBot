@@ -15,6 +15,9 @@ import java.util.Stack;
 
 import javax.swing.JEditorPane;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import blazebot.Poll.Option;
 
 public class Parser implements Runnable
@@ -28,6 +31,160 @@ public class Parser implements Runnable
 	}
 	public static Poll activePoll;
 	public long lastcmd=0;
+	static boolean blockLinks = true;
+	public static void whisperParser(String inmsg)
+	{
+		String sender = inmsg.substring(1, inmsg.indexOf("!"));
+		User user = User.getUser(sender);
+		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
+		System.out.println(sender+": "+message);
+		String[] params = message.split(" ");
+		if(params[0].equalsIgnoreCase("help"))
+		{
+			if(params.length==2)
+			{
+				if(isMod(user))
+				{
+					switch(params[1].toLowerCase())
+					{
+						
+						case "!uptime":Main.whisper("user access; Shows time stream has been active, use: !uptime [nameofstream]", user.name);return;
+						case "!addcmd":Main.whisper("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>", user.name);return;
+						case "!removecmd":Main.whisper("mod access; Shows time stream has been active, use: !removecmd !<command>", user.name);return;
+						case "!addpoll":Main.whisper("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...", user.name);return;
+						case "!removepoll":Main.whisper("mod access; Removes a poll, use: !removepoll !<pollcommand>", user.name);return;
+						case "!permit":Main.whisper("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)", user.name);return;
+						case "!ping":Main.whisper("mod access; Returns pong (note: used for testing, is not in commands stack)", user.name);return;
+						case "!vote":Main.whisper("user access; Votes on current poll, use: !vote <option>", user.name);return;
+						case "!endpoll":Main.whisper("mod access; Ends and counts current poll, use: !endpoll", user.name);return;
+						case "!help":Main.whisper("mod access; Shows help messages or with no parameter shows all commands, seriously..., use: !help, !help !<command>", user.name);return;
+						case "!togglelink":Main.whisper("mod access; Toggles if the bot should timeout people who are not permitted to post links", user.name);return;
+					}	
+				}
+				else
+				{
+					switch(params[1].toLowerCase())
+					{
+						
+						case "!uptime":Main.whisper("Shows time stream has been active, use: !uptime [nameofstream]", user.name);return;
+						case "!vote":Main.whisper("Votes on current poll, use: !vote <option>", user.name);return;
+					}
+				}
+				for(int i=0;i<commands.size();i++)
+				{
+					String[] cmds=commands.get(i);
+					if(cmds[0].equalsIgnoreCase(params[1]))
+					{
+						if(isMod(user))
+						{
+							Main.whisper(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2], user.name);
+						}
+						if(!isMod(user) && !cmds[1].equals("mod"))
+						{
+							Main.whisper("Command "+cmds[0]+" with message "+cmds[2], user.name);
+						}
+						return;
+					}
+					
+				}
+				if(isMod(user))
+				{
+					for(int i=0;i<Poll.polls.size();i++)
+					{
+						Poll cmds=Poll.polls.get(i);
+						if(cmds.command.equalsIgnoreCase(params[1]))
+						{
+							String strp="";
+							for(Option o : cmds.options)
+							{
+								strp+=o.name+" ";
+							}
+							Main.whisper("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+strp, user.name);
+							return;
+						}
+					}
+				}
+				Main.whisper("Command not found", user.name);
+			}
+			else if(params.length==1)
+			{
+				String str = "";
+				if(isMod(user))
+				{
+					str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !endpoll !togglelink";
+					for(int i=0;i<commands.size();i++)
+					{
+						String[] cmds=commands.get(i);
+						if(cmds[1].equals("mod"))
+						{
+							str+=" "+cmds[0];
+						}
+					}
+					str+=" User Commands: ";
+					for(int i=0;i<commands.size();i++)
+					{
+						String[] cmds=commands.get(i);
+						if(cmds[1].equals("user"))
+						{
+							str+=" "+cmds[0];
+						}
+					}
+					str+=" Polls: ";
+					for(int i=0;i<Poll.polls.size();i++)
+					{
+						str+=" "+Poll.polls.get(i).command;
+					}
+				}
+				else
+				{
+					str="Commands: !vote";
+					for(int i=0;i<commands.size();i++)
+					{
+						String[] cmds=commands.get(i);
+						if(!cmds[1].equals("mod"))
+						{
+							str+=" "+cmds[0];
+						}
+					}
+				}
+				Main.whisper(str, user.name);
+			}
+			return;
+		}
+		try
+		{
+			if(params[0].equalsIgnoreCase("whatis")||params[0].equalsIgnoreCase("whatisinfo")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				String info=Main.combine(item.info);
+				Main.whisper(info, user.name);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("whatispools")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.whisper("Pools: "+Main.combine(item.pools), user.name);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("whatispickup")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.whisper(item.pickup, user.name);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("!whatisid")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.whisper("ID: "+item.id, user.name);
+				return;
+			}
+			if(params[0].equalsIgnoreCase("whatisunlock")){
+				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+				Main.whisper(item.unlock, user.name);
+				return;
+			}
+		}
+		catch(Exception e)
+		{
+			
+		}
+	}
 	public void commandParser(String inmsg) throws IOException, NoSuchMethodException, SecurityException
 	{
 		String sender = inmsg.substring(1, inmsg.indexOf("!"));
@@ -97,62 +254,7 @@ public class Parser implements Runnable
 				}
 			}
 		}
-		if(params[0].equalsIgnoreCase("!help")&&isMod(user)){
-			if(params.length==2){
-				switch(params[1].toLowerCase()){
-				case "!uptime":Main.chatMsg("user access; Shows time stream has been active, use: !uptime [nameofstream]");return;
-				case "!addcmd":Main.chatMsg("mod access; Adds new command, (: means mod only) use: !addcmd<:> !<command> <command text>");return;
-				case "!removecmd":Main.chatMsg("mod access; Shows time stream has been active, use: !removecmd !<command>");return;
-				case "!addpoll":Main.chatMsg("mod access; Adds a poll command, use: !addpoll !<pollcommand> <poll message>;<option 1>;[option2]...");return;
-				case "!removepoll":Main.chatMsg("mod access; Removes a poll, use: !removepoll !<pollcommand>");return;
-				case "!permit":Main.chatMsg("mod access; Permits a user for posting a link, use: !permit user (note: with BTTV you can click their name and there is a button for it)");return;
-				case "!ping":Main.chatMsg("mod access; Returns pong (note: used for testing, is not in commands stack)");return;
-				case "!vote":Main.chatMsg("user access; Votes on current poll, use: !vote <option>");return;
-				case "!endpoll":Main.chatMsg("mod access; Ends and counts current poll, use: !endpoll");return;
-				case "!help":Main.chatMsg("mod access; Shows help messages or with no parameter shows all commands, seriously..., use: !help, !help !<command>");return;
-				}
-				for(int i=0;i<commands.size();i++){
-					String[] cmds=commands.get(i);
-					if(cmds[0].equalsIgnoreCase(params[1])){
-						Main.chatMsg(cmds[1]+" access; Command "+cmds[0]+" with message "+cmds[2]);
-						return;
-					}
-					
-				}
-				
-				for(int i=0;i<Poll.polls.size();i++){
-					Poll cmds=Poll.polls.get(i);
-					if(cmds.command.equalsIgnoreCase(params[1])){
-						String str="";
-						for(Option o : cmds.options){
-							str+=o.name+" ";
-						}
-						
-						Main.chatMsg("mod access; Begins poll "+cmds.command+" with message "+cmds.message+" with options "+str);
-						return;
-					}
-					
-				}
-				Main.chatMsg("Command not found");
-			}else if(params.length==1){
-				String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !endpoll",str2="User Commands: !vote";
-				
-				for(int i=0;i<commands.size();i++){
-					String[] cmds=commands.get(i);
-					if(cmds[1].equals("mod")){
-						str+=" "+cmds[0];
-					}else{
-						str2+=" "+cmds[0];
-					}
-				}
-				str+=" Polls ";
-				for(int i=0;i<Poll.polls.size();i++){
-					str+=" "+Poll.polls.get(i).command;
-				}
-				Main.chatMsg(str);
-				Main.chatMsg(str2);
-			}
-		}
+		
 //		if(params[0].equalsIgnoreCase("!commands")&&isMod(user)){
 //			String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !vote !endpoll",str2="User Commands:";
 //			
@@ -186,7 +288,19 @@ public class Parser implements Runnable
 			}while(!(drawUser.isReal&&new Date().getTime() - drawUser.lastMsg < drawTime&&!drawUser.name.equalsIgnoreCase("engimedbot")));
 			Main.chatMsg("Random draw of chatters in the past " + drawTime/1000 + " seconds : " + drawUser.name);
 		}
-		
+		if(params[0].equalsIgnoreCase("!togglelink")&&isMod(user))
+		{
+			blockLinks = !blockLinks;
+			if(blockLinks)
+			{
+				Main.chatMsg("I block links now");
+			}
+			else
+			{
+				Main.chatMsg("I dont block links now");
+			}
+			saveLinks();
+		}
 		if(params[0].equalsIgnoreCase("!permit")&&isMod(user))
 		{
 			permitted=User.getUser(params[1].replace("@",""));
@@ -200,47 +314,39 @@ public class Parser implements Runnable
 				Main.chatMsg(sender+", User not found");
 			}
 		}
-//		if (params[0].equalsIgnoreCase("!O2") && !O2Spamming) 
-//	    {
-//			O2Spamming = true;
-//	    	Main.chatMsg("O2 is a privilege, not a right");
-//	    	//example Parser.class.getMethod("save")
-//	    }
-//		if (params[0].equalsIgnoreCase("!aboutBot") && !aboutSpamming) 
-//	    {
-//			aboutSpamming = true;
-//	    	Main.chatMsg("EngiMedBot is a bot made by DarkMagicianGirl_ and Maxfojtik. the name is from pikmanfan72");
-//	    }
 		if (params[0].equalsIgnoreCase("!ping") && isMod(user)) 
 	    {
 	    	Main.chatMsg("Pong");
 	    }
 		try{
-			if(params[0].equalsIgnoreCase("!whatis")||params[0].equalsIgnoreCase("!whatisinfo")){
-				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
-				String info=Main.combine(item.info);
-				Main.chatMsg(info.substring(0, info.length()>200?200:info.length())+(info.length()>200?" ... platinumgod.co.uk for more":""));
-				return;
-			}
-			if(params[0].equalsIgnoreCase("!whatispools")){
-				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
-				Main.chatMsg("Pools: "+Main.combine(item.pools));
-				return;
-			}
-			if(params[0].equalsIgnoreCase("!whatispickup")){
-				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
-				Main.chatMsg(item.pickup);
-				return;
-			}
-			if(params[0].equalsIgnoreCase("!whatisid")){
-				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
-				Main.chatMsg("ID: "+item.id);
-				return;
-			}
-			if(params[0].equalsIgnoreCase("!whatisunlock")){
-				Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
-				Main.chatMsg(item.unlock);
-				return;
+			if(isMod(user))
+			{
+				if(params[0].equalsIgnoreCase("!whatis")||params[0].equalsIgnoreCase("!whatisinfo")){
+					Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+					String info=Main.combine(item.info);
+					Main.chatMsg(info.substring(0, info.length()>200?200:info.length())+(info.length()>200?" ... platinumgod.co.uk for more":""));
+					return;
+				}
+				if(params[0].equalsIgnoreCase("!whatispools")){
+					Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+					Main.chatMsg("Pools: "+Main.combine(item.pools));
+					return;
+				}
+				if(params[0].equalsIgnoreCase("!whatispickup")){
+					Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+					Main.chatMsg(item.pickup);
+					return;
+				}
+				if(params[0].equalsIgnoreCase("!whatisid")){
+					Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+					Main.chatMsg("ID: "+item.id);
+					return;
+				}
+				if(params[0].equalsIgnoreCase("!whatisunlock")){
+					Item item = Main.searcher.searchFor(Main.combine(Arrays.copyOfRange(params,1,params.length)));
+					Main.chatMsg(item.unlock);
+					return;
+				}
 			}
 		}catch(NullPointerException e){
 			e.printStackTrace();
@@ -271,40 +377,6 @@ public class Parser implements Runnable
 			}
 		if(params[0].equalsIgnoreCase("!follower") && isMod(user))
 		{
-			//TODO REMOVE next X amount of lines
-//				@deprecated for problems of the fact that i dont have this parser and im simply going to use an already existant function
-//			URL url;
-//		    InputStream is = null;
-//		    BufferedReader br = null;
-//			try 
-//			{
-//				url = new URL("https://api.twitch.tv/kraken/channels/"+Main.channel.substring(1)+"/follows?direction=DESC&limit=1&offset=0");
-//		        is = url.openStream();  // throws an IOException
-//		        br = new BufferedReader(new InputStreamReader(is));
-//		        JSONObject a = new JSONObject(br.readLine());
-//		        JSONArray msg = (JSONArray) a.get("follows");
-//	            String latestFollower = (String) ((JSONObject) ((JSONObject) msg.get(0)).get("user")).get("display_name");
-//	            Main.chatMsg("The latest follower is "+latestFollower);
-//		    }
-//			catch (MalformedURLException mue) 
-//			{
-//		         mue.printStackTrace();
-//		    }
-//			catch (IOException ioe) 
-//			{
-//				Main.chatMsg("Twitch API is down D:");
-//		    }
-//			finally 
-//		    {
-//		        try 
-//		        {
-//		            if (is != null) is.close();
-//		        }
-//		        catch (IOException ioe) 
-//		        {
-//		            // nothing to see here
-//		        }
-//		    }
 			JEditorPane jep = new JEditorPane("https://api.twitch.tv/kraken/channels/recursiveblaze/follows?direction=DESC&limit=1&offset=0");
 			String text = jep.getText();
 			Main.chatMsg("The latest follower is "+ItemSearch.getContent(text, "\"display_name\":\"", "\",\""));
@@ -377,6 +449,26 @@ public class Parser implements Runnable
 				Main.chatMsg("Error");
 			}
 			
+		}
+		if(params[0].equalsIgnoreCase("!users")&&isMod(user))
+		{
+			String string = "Current Users: ";
+			for(int i = 0; i<User.users.size(); i++)
+			{
+				if(!User.users.get(i).isMod)
+				{
+					string += User.users.get(i).name+", ";
+				}
+			}
+			string += "Current Mods: ";
+			for(int i = 0; i<User.users.size(); i++)
+			{
+				if(User.users.get(i).isMod)
+				{
+					string += User.users.get(i).name+", ";
+				}
+			}
+			Main.chatMsg(string);
 		}
 		if(params[0].equalsIgnoreCase("!changevote")||params[0].equalsIgnoreCase("!vote")||params[0].equalsIgnoreCase("!pullout"))
 				if(activePoll!=null&&user.isReal)
@@ -485,19 +577,52 @@ public class Parser implements Runnable
 			System.out.println("Promoted "+params[4]);//i have never seen one but it probably has the same +o tag
 		}
 	}
-	public void userParser(String inmsg)
+	public static void userParser()
 	{
-		if(inmsg.contains("353")){
-			String message = inmsg.substring(inmsg.indexOf(":",1)+1);
-			String[] params = message.split(" ");
-			for(int i=0;i<params.length;i++)
-				User.addUser(params[i]);
-		}else if(inmsg.contains("JOIN")){
-			String sender = inmsg.substring(1, inmsg.indexOf("!"));
-			User.addUser(sender);
-		}else if(inmsg.contains("PART")){
-			String sender = inmsg.substring(1, inmsg.indexOf("!"));
-			User.removeUser(sender);
+		try
+		{
+			JEditorPane jep = new JEditorPane("http://tmi.twitch.tv/group/user/"+Main.channel.substring(1)+"/chatters");
+			JSONObject json = new JSONObject(jep.getText());
+			JSONObject chatters = json.getJSONObject("chatters");
+			JSONArray mods = chatters.getJSONArray("moderators");
+			JSONArray viewers = chatters.getJSONArray("viewers");
+			Stack<User> users = new Stack<User>();
+			for(int i = 0; i<viewers.length(); i++)
+			{
+				users.push(new User(viewers.getString(i),false));
+			}
+			for(int i = 0; i<mods.length(); i++)
+			{
+				users.push(new User(mods.getString(i),true));
+			}
+			User.users = new Stack<User>();
+			User.users.addAll(users);
+//			for(int i = 0; i<User.users.size(); i++)
+//			{
+//				viewersStored.add(User.users.get(i).name);
+//			}
+//			for(int i = 0; i<viewers.length(); i++)
+//			{
+//				viewersS.push(viewers.getString(i));
+//			}
+//			viewersS.removeAll(viewersStored);
+//			for(int i = 0; i<viewersS.size(); i++)
+//			{
+//				User.users.push(new User(viewersS.get(i),false));
+//			}
+//			for(int i = 0; i<User.users.size(); i++)
+//			{
+//				viewersStored.add(User.users.get(i).name);
+//			}
+//			for(int i = 0; i<viewers.length(); i++)
+//			{
+//				
+//			}
+			
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
 		}
 	}
 	User permitted=null;
@@ -515,8 +640,8 @@ public class Parser implements Runnable
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
 		String[] words = message.split(" ");
 		boolean permit=user.equals(permitted);
-		
-		if(!(isMod(user)||permit))
+		if((!isMod(user) || permit) && blockLinks)
+		{
 			for(int i=0;i<words.length;i++){
 				char[] chars = words[i].toCharArray();
 				int count=0;
@@ -552,63 +677,64 @@ public class Parser implements Runnable
 					//e.printStackTrace();
 				}
 			}
-		boolean timed = false;
-		for(int i=0; i<User.linkTimedOut.size(); i++)
-		{
-			if(User.linkTimedOut.get(i)[0].equals(user.name))
+			boolean timed = false;
+			for(int i=0; i<User.linkTimedOut.size(); i++)
 			{
-				timed = true;
+				if(User.linkTimedOut.get(i)[0].equals(user.name))
+				{
+					timed = true;
+				}
 			}
-		}
-		if(permit)
-		{
-			permitted=null;
-			return;
-		}
-		if(shortened)
-		{
 			if(permit)
 			{
 				permitted=null;
 				return;
 			}
-			if(timed)
+			if(shortened)
 			{
-				Main.chatMsg(user.name+" you are timed out from posting links");
+				if(permit)
+				{
+					permitted=null;
+					return;
+				}
+				if(timed)
+				{
+					Main.chatMsg(user.name+" you are timed out from posting links");
+				}
+				else
+				{
+					Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
+				}
+		    	try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    	Main.chatMsg(".timeout "+user.name.trim()+" 1");
 			}
-			else
-			{
-				Main.chatMsg(user.name+" Links are disallowed, ask for permission from a mod");
-			}
-	    	try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	    	Main.chatMsg(".timeout "+user.name.trim()+" 1");
 		}
 	}
 	public static void save()throws IOException{
 		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg",User.linkTimedOut);
 		Poll.savePolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg",commands);
+		saveLinks();
 		System.err.println("Saving commands");
+	}
+	static void saveLinks()
+	{
+		StackUtils.SaveString("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blockLinks.cfg", String.valueOf(blockLinks));
 	}
 	public static void load()throws IOException{
 		User.linkTimedOut = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg");
 		Poll.loadPolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		commands = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg");
+		blockLinks = Boolean.parseBoolean(StackUtils.LoadString("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blockLinks.cfg"));
 		System.err.println("Loading commands");
 	}
 	public static boolean isMod(User user)
 	{
-		//return true;
-		if(user.name.equalsIgnoreCase("maxfojtik") || user.name.equalsIgnoreCase("darkmagiciangirl_"))
-		{
-			return true;//sure
-		}
-		//return false;
 		return user.isMod;
 	}
 	public static void updateTimeouts()

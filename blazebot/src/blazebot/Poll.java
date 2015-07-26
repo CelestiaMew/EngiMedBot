@@ -21,26 +21,17 @@ public class Poll
 			this.options[i] = temp;
 			i++;
 		}
-		System.out.println(inoptions[0]);
-		this.message = message;//yeh
-		polls.add(this);//stored
+		this.message = message;
+		polls.add(this);
 		
 	}
 	String command;
-	//hmm how can i explain this
-	//so when this instance is made, there will be one instance per poll
-	//each poll will have a certain amount of options
-	//the vote class will be instantated off of this instance
-	//so each vote that is called will know what options are availible and 
-	//yeh but the constructor is just for the poll to say, this is what i should react to but it wont run from this
 	public void startPoll()
 	{
-		Parser.activePoll=this;// for what will be outputted like 'Vote for your favourite ship' etc
+		Parser.activePoll=this;
 		Main.chatMsg(message + " Vote using !vote <option>");
 	}
-	String message;//this will be stored from when constructor ran
-	//so all we are doing, is new Poll("!poll","message",new String(){"stuff"}); then it will auto store itself in the poll stack right? so we can then use a static method to search the stack for
-	//so, which parts are confusing? do you want me to run through program?
+	String message;
 	public void changePoll(User user, String options)
 	{
 		
@@ -50,14 +41,13 @@ public class Poll
 		for(int i = 0;i<votes.size();i++)
 		{
 			votes.get(i).option.votecount++;
-			System.out.println(votes.get(i).option);
 		}
-		Option bestest = new Option("Nothing");//no it doesnt, but atm the options[] is empty because you are not adding to it
+		Option bestest = new Option("Nothing");
 		for(int i=0;i<options.length;i++)
 		{
 			if(options[i].votecount>bestest.votecount)
 			{
-				bestest=options[i];//what you mean
+				bestest=options[i];
 			}
 		}
 		boolean tied = false;
@@ -95,7 +85,6 @@ public class Poll
 		boolean valid=false;
 		public Vote(User user,String option)
 		{
-			System.out.println(option);
 			for(int i=0;i<votes.size();i++)
 			{
 				if(votes.get(i).user.equals(user))
@@ -105,7 +94,6 @@ public class Poll
 			}
 			for(Option curoption : options){
 				if(curoption.name.equalsIgnoreCase(option)){
-					System.out.println(curoption.name);
 					this.user=user;
 					this.option=curoption;
 					valid=true;

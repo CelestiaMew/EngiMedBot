@@ -2,6 +2,8 @@ package blazebot;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,6 +24,38 @@ public class StackUtils
 			newstack.push(line);//so now it reconstructs the stack but in these lines and then uses the other function to save it
 		}
 		saveS(filename,newstack);
+	}
+	public static String LoadString(String filename)
+	{
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(filename));
+			String line = "";
+			line = reader.readLine();
+			reader.close();
+			return line;
+		}
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public static void SaveString(String filename, String thing)
+	{
+		try
+		{
+			File file = new File(filename);
+			file.createNewFile();
+			FileOutputStream out;
+			out = new FileOutputStream(filename);
+			out.write(String.valueOf(thing).getBytes());
+			out.close();
+		} 
+		catch (IOException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 	public static void saveS(String filename, Stack<String> lines) throws IOException
 	{
