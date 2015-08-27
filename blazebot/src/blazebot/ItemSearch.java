@@ -4,12 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Scanner;
-
-import javax.swing.JEditorPane;
-import javax.swing.JOptionPane;
 
 public class ItemSearch {
 	public ItemSearch(){
@@ -28,7 +22,7 @@ public class ItemSearch {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
 		}
 		int index = 0;
 		while((index=HTML.indexOf("<span>",index+6))!=-1){

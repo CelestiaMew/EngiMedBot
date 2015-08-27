@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.EmptyStackException;
 import java.util.Stack;
 
+import blazebot.Parsers.commandParser;
+
 
 public class Poll 
 {
@@ -25,13 +27,13 @@ public class Poll
 		polls.add(this);
 		
 	}
-	String command;
+	public String command;
 	public void startPoll()
 	{
-		Parser.activePoll=this;
-		Main.chatMsg(message + " Vote using !vote <option>");
+		commandParser.activePoll=this;
+		BotMain.chatMsg(message + " Vote using !vote <option>");
 	}
-	String message;
+	public String message;
 	public void changePoll(User user, String options)
 	{
 		
@@ -67,11 +69,11 @@ public class Poll
 		}
 		if(!tied)
 		{
-			Main.chatMsg("The option with the most votes is "+bestest.name+" with "+bestest.votecount+" votes");
+			BotMain.chatMsg("The option with the most votes is "+bestest.name+" with "+bestest.votecount+" votes");
 		}
 		else
 		{
-			Main.chatMsg("Tie between "+bestest.name+" and "+tiedString.substring(0, tiedString.length()-4)+" with "+bestest.votecount+" votes");// i didnt read i didnt think you were doing that my bad
+			BotMain.chatMsg("Tie between "+bestest.name+" and "+tiedString.substring(0, tiedString.length()-4)+" with "+bestest.votecount+" votes");// i didnt read i didnt think you were doing that my bad
 		}
 		options=null;
 		votes=new Stack<Vote>();//there is 2 ways we could do it, have a static method that will look through the polls, or have the Parser class do it cause startPoll and endPoll are NOT static
@@ -105,10 +107,10 @@ public class Poll
 		User user;
 		Option option;
 	}
-	class Option
+	public class Option
 	{
-		int votecount = 0;
-		String name = "";
+		public int votecount = 0;
+		public String name = "";
 		public Option(String name)
 		{
 			this.name = name;
@@ -123,7 +125,7 @@ public class Poll
 			StackUtils.saveSA(filename, stack);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
 		}
 	}
 	public static void loadPolls(String filename){
@@ -150,7 +152,7 @@ public class Poll
 		}
 		return arr;
 	}
-	Option[] options = null;//so do you see where we are going so far?
-	Stack<Vote> votes = new Stack<Vote>();
+	public Option[] options = null;//so do you see where we are going so far?
+	public Stack<Vote> votes = new Stack<Vote>();
 	public static Stack<Poll> polls = new Stack<Poll>();
 }

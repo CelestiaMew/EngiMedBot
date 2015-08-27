@@ -1,6 +1,5 @@
 package blazebot;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Stack;
 
@@ -10,7 +9,6 @@ public class Ticker implements Runnable{
 		m=method;
 		secs=seconds;
 		loop = lop;
-		tickers.push(this);
 		t=new Thread(this);
 		t.start();
 	}
@@ -19,7 +17,6 @@ public class Ticker implements Runnable{
 		m=method;
 		secs=seconds;
 		loop = lop;
-		tickers.push(this);
 		t=new Thread(this);
 		t.start();
 	}
@@ -42,7 +39,7 @@ public class Ticker implements Runnable{
 					break;
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
 			}
 			
 		}
@@ -53,5 +50,4 @@ public class Ticker implements Runnable{
 	int secs=-1;
 	boolean loop = false;
 	boolean stop = false;
-	public static Stack<Ticker> tickers = new Stack<Ticker>();
 }
