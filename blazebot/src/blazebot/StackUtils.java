@@ -29,13 +29,18 @@ public class StackUtils
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 			String line = "";
-			line = reader.readLine();
+			String info = "";
+			while(line!=null)
+			{
+				line = reader.readLine();
+				info = info + line + "\n";
+			}
 			reader.close();
-			return line;
+			return info;
 		}
 		catch (Exception e) 
 		{
-			CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
+			//CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
 		}
 		return null;
 	}
@@ -68,10 +73,12 @@ public class StackUtils
 		Stack<String> in = loadS(filename);
 		String line = null;
 		Stack<String[]> arrs = new Stack<String[]>();
-		while(!in.empty()){
-			line=in.pop();
+		for(int i = 0; i < in.size(); i++)
+		{
+			line=in.get(i);
 			arrs.push(line.split("spch"));//nope they have alternate uses i forgot name
 		}
+		in.clear();
 		return arrs;
 	}
 	public static Stack<String> loadS(String filename)throws IOException{

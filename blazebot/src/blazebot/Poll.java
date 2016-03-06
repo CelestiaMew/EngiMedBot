@@ -100,6 +100,7 @@ public class Poll
 					this.option=curoption;
 					valid=true;
 					votes.push(this);
+					BotMain.whisper("Vote "+option+" counted", user.name);
 					break;
 				}
 			}

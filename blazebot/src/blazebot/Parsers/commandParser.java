@@ -5,12 +5,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Random;
 import java.util.Stack;
+import java.util.TimeZone;
 
 import javax.swing.JEditorPane;
 
+import org.json.JSONObject;
+
+import blazebot.BotServer;
 import blazebot.CrashGUI;
 import blazebot.Item;
 import blazebot.ItemSearch;
@@ -32,10 +40,20 @@ public class commandParser implements Runnable
 	public static long lastcmd=0;
 	public static boolean blockLinks = true;
 	public static User permitted=null;
-	public static void save()throws IOException{
+	public static Stack<String> quotes = new Stack<String>();
+	public static String[] requestQuote = new String[2];
+	public static String[] delQuote = new String[2];
+	public static Stack<String[]> quoteCooldown = new Stack<String[]>();
+	public static String racersURL;
+	public static Random rand = new Random();
+	public static Stack<String> blacklistedRequesters = null;
+	public static void save()throws IOException
+	{
 		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg",User.linkTimedOut);
 		Poll.savePolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		StackUtils.saveSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg",commands);
+		StackUtils.saveS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/quotes.txt", quotes);
+		StackUtils.saveS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blacklistedRequesters.cfg", blacklistedRequesters);
 		saveLinks();
 		System.err.println("Saving commands");
 	}
@@ -43,20 +61,24 @@ public class commandParser implements Runnable
 	{
 		StackUtils.SaveString("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blockLinks.cfg", String.valueOf(blockLinks)); //to block links
 	}
-	public static void load()throws IOException{
+	public static void load() throws IOException
+	{
 		User.linkTimedOut = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/timed.cfg");
 		Poll.loadPolls("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/polls.cfg");
 		commands = StackUtils.loadSA("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/commands.cfg");
 		blockLinks = Boolean.parseBoolean(StackUtils.LoadString("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blockLinks.cfg"));
+		BotMain.BadURLS = StackUtils.loadS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/bannedLinks.cfg");
+		quotes = StackUtils.loadS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/quotes.txt");
+		blacklistedRequesters = StackUtils.loadS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/blacklistedRequesters.cfg");
 		System.err.println("Loading commands");
 	}
-	public static void parse(String inmsg) throws IOException
+	public static void parse(String inmsg, User user) throws IOException
 	{
-		String sender = inmsg.substring(1, inmsg.indexOf("!"));
-		User user = User.getUser(sender.toLowerCase());
 		user.lastMsg = new Date().getTime();
 		String message = inmsg.substring(inmsg.indexOf(":",1)+1).trim();
-		System.out.println(sender+": "+message);
+		System.out.println(user.name+": "+message);
+		String[] params = message.split(" ");
+		BotMain.detectConstruction(params, user);
 		if(!user.isMod&&activePoll==null)
 			if(new Date().getTime()-user.lastCmd<10000||new Date().getTime()-lastcmd<5000)
 				return;
@@ -66,8 +88,6 @@ public class commandParser implements Runnable
 		}
 		user.lastCmd=new Date().getTime();
 		lastcmd=new Date().getTime();
-		String[] params = message.split(" ");
-		
 //		if(params[0].equalsIgnoreCase("!commands")&&user.isMod){
 //			String str="Mod commands: !help !addcmd !removecmd !addpoll !removepoll !permit !ping !uptime !vote !endpoll",str2="User Commands:";
 //			
@@ -87,6 +107,85 @@ public class commandParser implements Runnable
 //			BotMain.chatMsg(str2);
 //		}
 		/////////////BotMain Commands ////////////////// 
+		if(params[0].equalsIgnoreCase("!addquote") && user.isMod)
+		{
+			if(BotMain.combine(Arrays.copyOfRange(params,1,params.length)).equals(""))
+			{
+				BotMain.chatMsg("Can't have a quote with nothing as the quote, dummy Kappa");
+			}
+			else
+			{
+				String game = "Nothing";
+				try{game = new JSONObject(new JEditorPane("https://api.twitch.tv/kraken/streams/recursiveblaze").getText()).getJSONObject("stream").getString("game");}catch(Exception e){}
+				SimpleDateFormat sdf = new SimpleDateFormat("MMMM-dd-yyyy");
+				String quote = "\""+(BotMain.combine(Arrays.copyOfRange(params,1,params.length))) + "\" - Blaze : " + sdf.format(new Date())+" : "+game;
+				quotes.push(quote);
+				BotMain.chatMsg("Added Quote: "+quote+" As quote number "+quotes.size());
+				StackUtils.saveS("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/quotes.cfg", quotes);
+			}
+		}
+		if(params[0].equalsIgnoreCase("!split") && user.isMod)
+		{
+			if(racersURL!=null)
+			{
+				BotMain.chatMsg("Get the best of all steams! see the split view at "+racersURL);
+			}
+			else
+			{
+				BotMain.chatMsg("No racers set!");
+			}
+		}
+		if(params[0].equalsIgnoreCase("!quote"))
+		{
+			if(params.length>1)
+			{
+				int num = 0;
+				try
+				{
+					num = Integer.parseInt(params[1]);
+					try
+					{
+						if(num>0 && num<=quotes.size())
+						{
+							BotMain.chatMsg("Quote "+num+" "+quotes.get(num-1));
+						}
+						else
+						{
+							BotMain.chatMsg("That quote does not exist");
+						}
+					}
+					catch(Exception e)
+					{
+						BotMain.chatMsg("Error");
+					}
+				}
+				catch(Exception e)
+				{
+					if(params[1].equals("Kappa"))
+					{
+						try {
+							BotMain.chatMsg("Really?");
+							Thread.sleep(300);
+							BotMain.chatMsg("/timeout "+user.name+" 1");
+							Thread.sleep(300);
+							BotMain.chatMsg("Kappa");
+						} catch (InterruptedException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+					else
+					{
+						BotMain.chatMsg("Really?");
+					}
+				}
+			}
+			else
+			{
+				int num = rand.nextInt(quotes.size());
+				BotMain.chatMsg("Quote "+(num+1)+" "+quotes.get(num));
+			}
+		}
 		if(params[0].equalsIgnoreCase("!draw")&&user.isMod){
 			User drawUser;
 			User[] chatUsers = new User[User.hmusers.size()];
@@ -117,12 +216,41 @@ public class commandParser implements Runnable
 			}
 			else
 			{
-				BotMain.chatMsg(sender+", User not found");
+				BotMain.chatMsg(user.name+", User not found");
 			}
 		}
+//		if (params[0].equalsIgnoreCase("!resent")) 
+//	    {
+//			try
+//			{
+//				Item item = BotMain.searcher.searchFor(BotServer.items[BotServer.items.length-1]);
+//				if(item!=null)
+//				{
+//					BotMain.chatMsg(BotServer.items[BotServer.items.length-1]+" : "+BotMain.combine(item.info));
+//				}
+//			}
+//			catch(Exception e)
+//			{
+//				
+//			}
+//	    }
+//		if (params[0].equalsIgnoreCase("!seed")) 
+//	    {
+//			if(!BotServer.seed.equals(""))
+//			{
+//				BotMain.chatMsg(BotServer.seed);
+//			}
+//	    }
+//		if (params[0].equalsIgnoreCase("!items")) 
+//	    {
+//			if(BotServer.items.length!=0)
+//			{
+//				BotMain.chatMsg(BotMain.combine(BotServer.items," : "));
+//			}
+//	    }
 		if (params[0].equalsIgnoreCase("!help")) 
 	    {
-			BotMain.chatMsg(sender+", To prevent spam, we moved !help to whispers. do \"/w engimedbot help\"");
+			BotMain.chatMsg(user.name+", To prevent spam, we moved !help to whispers. do \"/w engimedbot help\"");
 	    }
 		if (params[0].equalsIgnoreCase("!ping") && user.isMod) 
 	    {
@@ -134,7 +262,7 @@ public class commandParser implements Runnable
 				if(params[0].equalsIgnoreCase("!whatis")||params[0].equalsIgnoreCase("!whatisinfo")){
 					Item item = BotMain.searcher.searchFor(BotMain.combine(Arrays.copyOfRange(params,1,params.length)));
 					String info=BotMain.combine(item.info);
-					BotMain.chatMsg(info.substring(0, info.length()>200?200:info.length())+(info.length()>200?" ... platinumgod.co.uk for more":""));
+					BotMain.chatMsg(info.substring(0, info.length()>350?350:info.length())+(info.length()>350?" ... platinumgod.co.uk for more":""));
 					return;
 				}
 				if(params[0].equalsIgnoreCase("!whatispools")){
@@ -159,7 +287,6 @@ public class commandParser implements Runnable
 				}
 			}
 		}catch(NullPointerException e){
-			CrashGUI G = new CrashGUI(e.toString()); G.printStackTrace(e.getStackTrace());
 			BotMain.chatMsg("Item not found");
 			return;
 		}
@@ -170,11 +297,15 @@ public class commandParser implements Runnable
 			if(params[0].equalsIgnoreCase(curcmd[0]))
 			{
 				if(!curcmd[1].equals("mod")||(curcmd[1].equals("mod")&&user.isMod))
+				{
 					BotMain.chatMsg(curcmd[2]);
+				}
 				return;
+				
 			}
 		}
 		if(user.isMod)
+		{
 			for(int i=0;i<Poll.polls.size();i++)
 			{
 				Poll poll = Poll.polls.get(i);
@@ -185,18 +316,19 @@ public class commandParser implements Runnable
 					return;
 				}
 			}
+		}
 		if(params[0].equalsIgnoreCase("!follower") && user.isMod)
 		{
 			JEditorPane jep = new JEditorPane("https://api.twitch.tv/kraken/channels/recursiveblaze/follows?direction=DESC&limit=1&offset=0");
 			String text = jep.getText();
 			BotMain.chatMsg("The latest follower is "+ItemSearch.getContent(text, "\"display_name\":\"", "\",\""));
 		}
-		if(params[0].equalsIgnoreCase("!timeoutlink"))
+		if(params[0].equalsIgnoreCase("!timeoutlink") && user.isMod)
 		{
 			long time = new Date().getTime();
 			if(params[1].equalsIgnoreCase("help"))
 			{
-				BotMain.chatMsg("d = day, w = week, m = minute, nothing = hour, ex \"!timeoutlink example 1d\" will timeout for a day but \"!timeoutlink example 1\" will be for one hour");
+				BotMain.whisper("d = day, w = week, m = minute, nothing = hour, ex \"!timeoutlink example 1d\" will timeout for a day but \"!timeoutlink example 1\" will be for one hour",user.name);
 			}
 			try
 			{
@@ -316,7 +448,7 @@ public class commandParser implements Runnable
 //					if(params[0].equalsIgnoreCase("!pullout"))
 //					{
 //						
-//						//ShipPoll.removeVote(sender);
+//						//ShipPoll.removeVote(user.name);
 //					}
 				}
 				else

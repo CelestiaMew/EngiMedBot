@@ -15,7 +15,7 @@ import blazebot.User;
 
 public class userParser 
 {
-	public static synchronized void parse()
+	public static synchronized void parse(boolean first)// used to tell if the current people in chat are bots, so after the first time it will assume amyone new to be a bot untill they chat once
 	{
 		/*try
 		{
@@ -78,7 +78,7 @@ public class userParser
 			{
 				currentExistTest.add(viewers.getString(i).toLowerCase());
 				if(!(User.hmusers.containsKey(viewers.getString(i).toLowerCase())))
-					User.hmusers.put(viewers.getString(i).toLowerCase(),new User(viewers.getString(i),false));
+					User.hmusers.put(viewers.getString(i).toLowerCase(),new User(viewers.getString(i),false,!first));
 				//users.push(new User(viewers.getString(i),false));
 			}
 			BotMain.Mconsole.clear();
@@ -89,7 +89,15 @@ public class userParser
 				BotMain.Mconsole.print(mods.getString(i).toLowerCase());
 				if(!(User.hmusers.containsKey(mods.getString(i).toLowerCase())))
 				{
-					User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true));
+					User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true,!first));
+				}
+				else
+				{
+					if(!User.hmusers.get(mods.getString(i).toLowerCase()).isMod)
+					{
+						User.hmusers.remove(mods.getString(i).toLowerCase());
+						User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true,!first));
+					}
 				}
 				//users.push(new User(mods.getString(i),true));
 			}
@@ -99,7 +107,15 @@ public class userParser
 				BotMain.Mconsole.print(staff.getString(i).toLowerCase());
 				if(!(User.hmusers.containsKey(staff.getString(i).toLowerCase())))
 				{
-					User.hmusers.put(staff.getString(i).toLowerCase(),new User(staff.getString(i),true));
+					User.hmusers.put(staff.getString(i).toLowerCase(),new User(staff.getString(i),true,!first));
+				}
+				else
+				{
+					if(!User.hmusers.get(mods.getString(i).toLowerCase()).isMod)
+					{
+						User.hmusers.remove(mods.getString(i).toLowerCase());
+						User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true,!first));
+					}
 				}
 				//users.push(new User(staff.getString(i),true));
 			}
@@ -109,7 +125,15 @@ public class userParser
 				BotMain.Mconsole.print(admins.getString(i).toLowerCase());
 				if(!(User.hmusers.containsKey(admins.getString(i).toLowerCase())))
 				{
-					User.hmusers.put(admins.getString(i).toLowerCase(),new User(admins.getString(i),true));
+					User.hmusers.put(admins.getString(i).toLowerCase(),new User(admins.getString(i),true,!first));
+				}
+				else
+				{
+					if(!User.hmusers.get(mods.getString(i).toLowerCase()).isMod)
+					{
+						User.hmusers.remove(mods.getString(i).toLowerCase());
+						User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true,!first));
+					}
 				}
 				//users.push(new User(admins.getString(i),true));
 			}
@@ -119,7 +143,15 @@ public class userParser
 				BotMain.Mconsole.print(gMods.getString(i).toLowerCase());
 				if(!(User.hmusers.containsKey(gMods.getString(i).toLowerCase())))
 				{
-					User.hmusers.put(gMods.getString(i).toLowerCase(),new User(gMods.getString(i),true));
+					User.hmusers.put(gMods.getString(i).toLowerCase(),new User(gMods.getString(i),true,!first));
+				}
+				else
+				{
+					if(!User.hmusers.get(mods.getString(i).toLowerCase()).isMod)
+					{
+						User.hmusers.remove(mods.getString(i).toLowerCase());
+						User.hmusers.put(mods.getString(i).toLowerCase(),new User(mods.getString(i),true,!first));
+					}
 				}
 				//users.push(new User(gMods.getString(i),true));
 			}
@@ -159,11 +191,11 @@ public class userParser
 		@Override
 		public void run() 
 		{
+			parse(true);
 			while(true)
 			{
 				try
 				{
-					parse();
 					//BotMain.console.print("Getting Users");
 					try {
 						Thread.sleep(60*1000);
@@ -171,6 +203,7 @@ public class userParser
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					parse(false);
 				}
 				catch(Exception e)
 				{

@@ -4,15 +4,21 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
 
 public class ItemSearch {
-	public ItemSearch(){
+	public ItemSearch()
+	{
 		BufferedReader br = null;
+		
 		try {
-			br = new BufferedReader(new FileReader("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/pg.html"));
-		} catch (FileNotFoundException e1) {
+			//br = new BufferedReader(new FileReader("C:/Users/"+System.getProperty("user.name")+"/Dropbox/EngiMedBot/pg.html"));
+			br = new BufferedReader(new InputStreamReader(new URL("http://platinumgod.co.uk/afterbirth").openStream()));
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 		String HTML="";
 		String line="";
@@ -37,7 +43,7 @@ public class ItemSearch {
 			if(contains(section,"<p class=\"pickup\">")>0)
 				item.pickup=getContent(section,"<p class=\"pickup\">","</p>");
 			if(contains(section,"<p>")>0)
-				item.info=getContents(section,"<p>•","</p>");
+				item.info=getContents(section,"<p>&#8226","</p>");
 			if(contains(section,"<p>Type: ")>0)
 				item.types=getContent(section,"<p>Type: ","</p>").split(", ");
 			if(contains(section,"<p>Item Pool: ")>0)

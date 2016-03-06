@@ -9,8 +9,8 @@ public class CrashGUI extends JFrame
 	{
 		setLayout(null);
 		add(console);
-		setBounds(0,0,700,700);
-		console.setBounds(0, 0, 700, 700);
+		setBounds(0,0,700,500);
+		console.setBounds(0, 0, 700, 500-getInsets().top-getInsets().bottom);
 		console.init();
 		console.print(log);
 		setVisible(true);
